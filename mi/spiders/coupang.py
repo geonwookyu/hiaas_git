@@ -11,10 +11,10 @@ class CoupangSpider(scrapy.Spider):
                 
             urls.append(url_page)
         #User-Agent값으로 유저 정보 입력 
-        headers = {'User-Agent' : 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.77 Safari/537.36'}
+        #headers = {'User-Agent' : 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.77 Safari/537.36'}
 
         for url in urls:
-            yield scrapy.Request(url=url, headers=headers, callback=self.parse)
+            yield scrapy.Request(url=url, callback=self.parse)
 
     def parse(self, response):
         try :
