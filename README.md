@@ -1,6 +1,9 @@
 # To Do
-- python version 표기
 
-- pythob-pip install
+## python version
+Python 3.8.10
 
-- Requirements.txt 생성
+## python-pip install
+```
+$ sudo apt install python3-pip
+```
