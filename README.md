@@ -3,4 +3,4 @@
 
 - pythob-pip install
 
-- Requirement.txt 생성
+- Requirements.txt 생성
