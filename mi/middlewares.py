@@ -2,6 +2,7 @@
 #
 # See documentation in:
 # https://docs.scrapy.org/en/latest/topics/spider-middleware.html
+import scrapy
 from time import sleep
 from requests import request
 from scrapy import signals
@@ -12,7 +13,7 @@ from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from itemadapter import is_item, ItemAdapter
 
-class MiSpiderMiddleware:
+class MiSpiderMiddleware(object):
     # Not all methods need to be defined. If a method is not defined,
     # scrapy acts as if the spider middleware does not modify the
     # passed objects.
@@ -20,9 +21,9 @@ class MiSpiderMiddleware:
     @classmethod
     def from_crawler(cls, crawler):
         # This method is used by Scrapy to create your spiders.
-        s = cls()
+        middleware = cls()
         crawler.signals.connect(s.spider_opened, signal=signals.spider_opened)
-        return s
+        return middleware
 
     def process_spider_input(self, response, spider):
         # Called for each response that goes through the spider
@@ -59,7 +60,7 @@ class MiSpiderMiddleware:
         spider.logger.info('Spider opened: %s' % spider.name)
 
 
-class MiDownloaderMiddleware:
+class MiDownloaderMiddleware(object):
     # Not all methods need to be defined. If a method is not defined,
     # scrapy acts as if the spider middleware does not modify the
     # passed objects.

@@ -6,15 +6,15 @@ class Naverspider(scrapy.Spider):
     name = "naver"
     allowed_domains = ['shopping.naver.com']
     start_urls = ['https://search.shopping.naver.com/search/all?query=TV&frm=NVSHATC&prevQuery=TV']
-    # custom_settings = {
-    #     'DOWNLOADER_MIDDLEWARES' : {
-    #         'mi.middlewares.MiDownloaderMiddleware' : 100
-    #     }    
-    # }
+    custom_settings = {
+        'DOWNLOADER_MIDDLEWARES' : {
+            'mi.middlewares.MiDownloaderMiddleware' : 100
+        }    
+    }
     def start_requests(self):
         urls=[]
         print('-------------------------------------------스파이더 스타트 리퀘스트 시작 ------------------------------------------------------')
-        for i in range(1,2):
+        for i in range(1,13):
             url_page = 'https://search.shopping.naver.com/search/all?frm=NVSHATC&origQuery=TV&pagingIndex='+str(i)+'&pagingSize=80&productSet=total&query=TV'
             #url_page = 'https://search.shopping.naver.com/search/all?query=TV&frm=NVSHATC&prevQuery=TV&pagingIndex='+str(i)
             urls.append(url_page)
@@ -25,9 +25,9 @@ class Naverspider(scrapy.Spider):
         #     "https://search.shopping.naver.com/search/all?query=TV&frm=NVSHATC&prevQuery=TV",
         # ]
         for url in urls:
-            yield scrapy.Request(url=url,headers=headers, callback=self.parse)
+            yield scrapy.Request(url=url,headers=headers, callback=self.parse_page)
 
-    def parse(self, response):
+    def parse_page(self, response):
         print('-------------------------------------------크롤링 시작 ------------------------------------------------------')
         #print(response)
         global urlList
@@ -36,12 +36,9 @@ class Naverspider(scrapy.Spider):
             naver_sels = response.css('li.basicList_item__2XT81')
             #print(naver_sels)
             for naver_sel in naver_sels:
-                #item['product'] = naver_sel.css('.basicList_title__3P9Q7 > a ::text').get() 
-
                 item['url'] = naver_sel.css('.basicList_title__3P9Q7 > a::attr(href)').get()
                 url = naver_sel.css('.basicList_title__3P9Q7 > a::attr(href)').get()
                 urlList.append(url)
-                #print("-------------------------------url 주소 : ",url)
                 yield scrapy.Request(url,self.parse_pdp)
             print(len(urlList))
         except Exception as e:
@@ -63,30 +60,28 @@ class Naverspider(scrapy.Spider):
                 item['stock'] = "N/A"
                 
                 if naver_pdp.css('.lowestPrice_price_area__OkxBK > div::text')[2].get() =="무료배송":
-                    #item['deliveryFee'] = naver_pdp.css('.lowestPrice_price_area__OkxBK > div::text')[2].get()
                     item['deliveryFee'] = "Y"
                 else: 
-                    #item['deliveryFee'] = (naver_pdp.css('.lowestPrice_delivery_price__3f-2l > em::text').get()+"원") 
                     item['deliveryFee'] = "N"
-                optionlen = (len(naver_pdp.css('.filter_text__3m_XA::text')))
+                optionlen = len(naver_pdp.css('.filter_text__3m_XA::text'))
                 option = ""
                 for i in range(1,optionlen):
                     option = option+naver_pdp.css('.filter_text__3m_XA::text')[i-1].get()
 
                 item['option'] = option
                 mem = response.css('.productList_inner__3wBIh')     #멤버쉽 데이터 read용 css path 
-                membershipIdx = len((mem[0].css('.benefitLayer_benefit__6Fkx6 > p::text')))
+                membershipIdx = len(mem[0].css('.benefitLayer_benefit__6Fkx6 > p::text'))
                 membershipStr = ""
                 if membershipIdx != 0:
                     for i in range(0,membershipIdx):
                         if (mem[0].css('.benefitLayer_benefit__6Fkx6 > p::text')[i]).get() == "원":
-                            membershipStr = membershipStr+((mem[0].css('p > em::text').get()))
-                        membershipStr = membershipStr+((mem[0].css('.benefitLayer_benefit__6Fkx6 > p::text')[i]).get())
+                            membershipStr = membershipStr+mem[0].css('p > em::text').get()
+                        membershipStr = membershipStr+mem[0].css('.benefitLayer_benefit__6Fkx6 > p::text')[i].get()
                 else:
                     membershipStr = "없음"
 
                 item['membership'] = membershipStr
-                item['productDetail'] = naver_pdp.css('.specInfo_section_spec__2KP4f > div::text').get()
+                item['productDetail'] = "N/A"#naver_pdp.css('.specInfo_section_spec__2KP4f > div::text').get()
                 item['url'] = response.url
                 yield item
         except Exception as e:
