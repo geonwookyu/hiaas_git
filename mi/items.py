@@ -64,7 +64,7 @@ class HiLabMIItem(scrapy.Item):
     reviewer = scrapy.Field()   # 리뷰_5 작성자(임의) - reviewer
     ingrade = scrapy.Field()   # 리뷰_6 평점(임의) - individual grade
     revdate = scrapy.Field()    # 리뷰_7 작성 일자(임의) - reviews date
-    purchdetail = scrapy.Field()    # 리뷰_8 구매품목 디테일(임의)
-    revdetail = scrapy.Field()  # 리뷰_9 리뷰 디테일(임의)
-    revblog = scrapy.Field()    # 리뷰_10 블로그 리뷰(임의)
-    revviews = scrapy.Field()   # 리뷰_11 리뷰 조회수(임의)
+    purchdetail = scrapy.Field()    # 리뷰_8 구매품목 디테일(임의) - purchase detail
+    revdetail = scrapy.Field()  # 리뷰_9 리뷰 디테일(임의) - reivew detail
+    blogrev = scrapy.Field()    # 리뷰_10 블로그 리뷰(임의) - blog review
+    revviews = scrapy.Field()   # 리뷰_11 리뷰 조회수(임의) - review views
