@@ -25,7 +25,7 @@ ROBOTSTXT_OBEY = False
 # Configure a delay for requests for the same website (default: 0)
 # See https://docs.scrapy.org/en/latest/topics/settings.html#download-delay
 # See also autothrottle settings and docs
-#DOWNLOAD_DELAY = 3
+#DOWNLOAD_DELAY = 1
 # The download delay setting will honor only one of:
 #CONCURRENT_REQUESTS_PER_DOMAIN = 16
 #CONCURRENT_REQUESTS_PER_IP = 16
@@ -62,12 +62,12 @@ ROBOTSTXT_OBEY = False
 
 # Configure item pipelines
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
-ITEM_PIPELINES = {
-   'mi.pipelines.CsvPipeline': 300,
-   # 'mi.pipelines.XmlPipeline': 300,
-   # 'mi.pipelines.JsonPipeline': 300,
-    'scrapy.pipelines.images.ImagesPipeline': 1,
-}
+# ITEM_PIPELINES = {                    #개별 파이프라인 설정을 위해 전역설정 해제함
+#    'mi.pipelines.CsvPipeline': 300,
+#    # 'mi.pipelines.XmlPipeline': 300,
+#    # 'mi.pipelines.JsonPipeline': 300,
+#     'scrapy.pipelines.images.ImagesPipeline': 1,
+# }
 IMAGES_STORE = './images'
 if not os.path.isdir(IMAGES_STORE):
         os.mkdir(IMAGES_STORE)
@@ -88,7 +88,7 @@ if not os.path.isdir(IMAGES_STORE):
 # Enable and configure HTTP caching (disabled by default)
 # See https://docs.scrapy.org/en/latest/topics/downloader-middleware.html#httpcache-middleware-settings
 HTTPCACHE_ENABLED = True
-HTTPCACHE_EXPIRATION_SECS = 1800
+HTTPCACHE_EXPIRATION_SECS = 3600
 #HTTPCACHE_DIR = 'httpcache'
 #HTTPCACHE_IGNORE_HTTP_CODES = []
 #HTTPCACHE_STORAGE = 'scrapy.extensions.httpcache.FilesystemCacheStorage'
