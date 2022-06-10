@@ -7,7 +7,7 @@ class Naverspider(scrapy.Spider):
     global headers
 
     urlList = []
-    name = "api_test_ver3"
+    name = "naver"
     allowed_domains = ['shopping.naver.com']
     start_urls = ['https://search.shopping.naver.com/search/all?query=TV&frm=NVSHATC&prevQuery=TV']
     custom_settings = {
@@ -56,7 +56,7 @@ class Naverspider(scrapy.Spider):
                 params = (
                     ('sort', 'rel'),
                     ('pagingIndex', pageingIndex),
-                    ('pagingSize', '80'),
+                    ('pagingSize', '20'),
                     ('viewType', 'list'),
                     ('productSet', 'total'),
                     ('deliveryFee', ''),
@@ -91,7 +91,7 @@ class Naverspider(scrapy.Spider):
             }
             number = 1
             ForTrycount = 0
-            while number < 13 :
+            while number < 2 :
                 print('number = ',number)
 
                 # 네이버를 향한 Request 생성 and 네이버로부터 response 받기
@@ -99,20 +99,6 @@ class Naverspider(scrapy.Spider):
 
                 # json을 리스트로 받기
                 itemList = json.loads(response.text)
-
-                # 첫번째 호출에는 list가 비교가 안되니 continue를 한다.
-                # if number == 1 :
-                #     number = number + 1
-                #     previousItemList = itemList
-                #     #printData(itemList)
-                #     continue
-
-                # # 반복 응답 Check Method
-                # # 응답이 같은 값으로 반복되었는지 확인하는 메서드를 실행한다. True일 경우 중복이라서 break
-                # if isRepeat(previousItemList, itemList) :
-                #     break
-
-                #previousItemList = itemList
                 number = number + 1
                 # 추출하려는 값의 key를 입력
                 
@@ -155,10 +141,10 @@ class Naverspider(scrapy.Spider):
 
             if case == 'naver':                 #네이버쇼핑
                 for naver_pdp in naver_pdps:
-                    tagIdx = len(naver_pdp.css('.top_cell__3DnEV::text'))
-                    for i in range(1,tagIdx):
-                        if naver_pdp.css('.top_cell__3DnEV::text')[i-1].get() == "브랜드" :
-                            item['brand'] = naver_pdp.css('.top_cell__3DnEV > em ::text')[i-1].get()
+                    tagIdx = len(naver_pdp.css('.top_cell__3DnEV  > em'))
+                    for i in range(0,tagIdx):
+                        if "브랜드" in naver_pdp.css('.top_cell__3DnEV::text')[i].get() :
+                            item['brand'] = naver_pdp.css('.top_cell__3DnEV > em ::text')[i].get()
                             break;
                         else:
                             item['brand'] = 'N/A' 
@@ -195,14 +181,15 @@ class Naverspider(scrapy.Spider):
                     item['membership'] = membershipStr
                     item['productDetail'] = "N/A"#naver_pdp.css('.specInfo_section_spec__2KP4f > div::text').get()
                     item['url'] = response.url
+                    print('WARNING-------------------------------------------------',tagIdx)
                     yield item
             elif case == 'smart':               #네이버 스마트쇼핑
                 #naver_pdps = response.css('._2ZMO1PVXbA')
                 tableIdx = len(naver_pdp.css('._1iuv6pLHMD::text'))
                 for naver_pdp in naver_pdps:
-                    for i in range(1,tableIdx):
-                        if naver_pdp.css('._1iuv6pLHMD')[i-1].get() == "브랜드":
-                            item['brand'] = naver_pdp.css('.ABROiEshTD::text')[i-1].get()
+                    for i in range(0,tableIdx):
+                        if naver_pdp.css('._1iuv6pLHMD')[i].get() == "브랜드":
+                            item['brand'] = naver_pdp.css('.ABROiEshTD::text')[i].get()
                             break;
                         else :
                             item['brand'] = 'N/A'
@@ -211,9 +198,9 @@ class Naverspider(scrapy.Spider):
                     item['seller'] = response.css('.KasFrJs3SA::text').get()        #최상위에 있는 판매사이트 명을 가져오기 위해 path를 분리함
                     item['sellershop'] = 'N/A'
                     item['product'] = itemPicker('._3oDjSvLwq9 _copyable::text')
-                    for i in range(1,tableIdx):
-                        if naver_pdp.css('._1iuv6pLHMD')[i-1].get() == "모델명":
-                            item['sku'] = itemPicker('.ABROiEshTD::text')[i-1]                    
+                    for i in range(0,tableIdx):
+                        if naver_pdp.css('._1iuv6pLHMD')[i].get() == "모델명":
+                            item['sku'] = itemPicker('.ABROiEshTD::text')[i]                    
                     item['dcprice'] = itemPicker('._1LY7DqCnwR::text')
                     item['stock'] = "N/A"
                     
