@@ -16,8 +16,9 @@ class HiLabMIItem(scrapy.Item):
     
     # <카테고리 페이지>
     pr1ca = scrapy.Field()   # 카테고리_1 카테고리
-    #pr2ca = scrapy.Field()
-    #pr3ca = scrapy.Field()
+    #pr2ca = scrapy.Field() # 카테고리 나눌 시에 사용
+    #pr3ca = scrapy.Field() # 카테고리 나눌 시에 사용
+    # ex) pr1ca = 가전디지털, pr2ca = TV/영상가전, pr3ca = TV
     sb = scrapy.Field() # 카테고리_3 정렬기준(임의) - sort by
     prco = scrapy.Field()  # 카테고리_4 총 제품 수(임의) - product count
     pr1nm = scrapy.Field()   # 카테고리_5 제품명
@@ -36,29 +37,29 @@ class HiLabMIItem(scrapy.Item):
 
     # <검색결과 페이지>
     sk = scrapy.Field()    # 검색결과_1 검색 키워드(임의) - search keyword
-    # 검색결과_3 ~ 검색결과_17은 카테고리_3 ~ 카테고리_17과 중복됨.
+    # 검색결과_3~17은 카테고리_3~17과 중복됨.				
 
     # <PDP(상품정보) 페이지>
     pr1br = scrapy.Field()  # 상품정보_1 브랜드
     brlk = scrapy.Field() # 상품정보_2 브랜드샵 link(임의) - brand link
-    # 상품정보_3은 #카테고리_7과 중복됨.
+    # 상품정보_3 판매자는 카테고리_7과 중복됨.
     talk = scrapy.Field() # 상품정보_4 셀러 샵 link(임의)
-    # 상품정보_5 카테고리_5와 중복됨.
+    # 상품정보_5 제품명은 카테고리_5와 중복됨.
     pr1id = scrapy.Field()  # 상품정보_6 SKU
     dcrate = scrapy.Field()   # 상품정보_7 할인율(임의) - discount rate
     fullpr = scrapy.Field() # 상품정보_8 정가(임의) - full price
     dcpr = scrapy.Field() # 상품정보_9 할인가(임의) - discount price
     soldout = scrapy.Field()    # 상품정보_10 품절 유무(임의)
-    # 상품정보_11은 카테고리_16과 중복됨.
-    # 상품정보_12은 카테고리_11과 중복됨.
-    # 상품정보_13은 카테고리_12와 중복됨.
+    # 상품정보_11 재고 현황은 카테고리_16과 중복됨.				
+    # 상품정보_12 무료배송 유무는 카테고리_11과 중복됨.				
+    # 상품정보_13 도착예정일자는 카테고리_12와 중복됨.				
     pr1va = scrapy.Field()  # 상품정보_14 제품 구매 옵션
-    # 상품정보_15 멤버십 혜택
+    msbf = scrapy.Field()    # 상품정보_15 멤버십 혜택(임의) - membership benefits
     prdetail = scrapy.Field()   # 상품정보_16 제품 상세(임의) - product detail
 
     # <리뷰 페이지>
-    # 리뷰_1은 카테고리_8과 중복될 수도 있음.
-    # 리뷰_2 카테고리_9와 중복될 수도 있음.
+    # 리뷰_1 평점 평균은 카테고리_8과 중복될 수도 있음.				
+    # 리뷰_2 전체 리뷰 개수는 카테고리_9와 중복될 수도 있음.				
     revsum = scrapy.Field()  # 리뷰_3 리뷰 특징 요약(임의) - reviews summary
     revsb = scrapy.Field() # 리뷰_4 정렬기준(임의) - review sort by
     reviewer = scrapy.Field()   # 리뷰_5 작성자(임의) - reviewer
