@@ -40,21 +40,21 @@ class HiLabMIItem(scrapy.Item):
 
     # <PDP(상품정보) 페이지>
     pr1br = scrapy.Field()  # 상품정보_1 브랜드
-    # 상품정보_2 브랜드샵 link
+    brlk = scrapy.Field()# 상품정보_2 브랜드샵 link
     # 상품정보_3은 #카테고리_7과 중복됨.
-    # 상품정보_4 셀러 샵 link
+    talk = scrapy.Field()# 상품정보_4 셀러 샵 link
     # 상품정보_5 카테고리_5와 중복됨.
     pr1id = scrapy.Field()  # 상품정보_6 SKU
     # 상품정보_7 할인율
     # 상품정보_8 정가
-    # 상품정보_9 할인가
-    # 상품정보_10 품절 유무
+    dcpr = scrapy.Field()# 상품정보_9 할인가
+    soldout = scrapy.Field()# 상품정보_10 품절 유무
     # 상품정보_11은 카테고리_16과 중복됨.
     # 상품정보_12은 카테고리_11과 중복됨.
     # 상품정보_13 도착 예정일자
     pr1va = scrapy.Field()  # 상품정보_14 제품 구매 옵션
-    # 상품정보_15 멤버십 혜택
-    # 상품정보_16 제품 상세
+    msbf = scrapy.Field()# 상품정보_15 멤버십 혜택
+    prdetail = scrapy.Field()# 상품정보_16 제품 상세
 
     # <리뷰 페이지>
     # 리뷰_1 평점 평균

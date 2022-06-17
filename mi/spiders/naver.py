@@ -1,6 +1,7 @@
 import scrapy
 import requests
 import json
+from mi.items import HiLabMIItem
 
 class Naverspider(scrapy.Spider):
     global urlList
@@ -17,7 +18,7 @@ class Naverspider(scrapy.Spider):
         'ITEM_PIPELINES': {
             'mi.pipelines.NaverPipeline': 300
         },
-        'DOWNLOAD_DELAY' : 1  
+        'DOWNLOAD_DELAY' : 1
     }
     
     def start_requests(self):
@@ -56,7 +57,7 @@ class Naverspider(scrapy.Spider):
                 params = (
                     ('sort', 'rel'),
                     ('pagingIndex', pageingIndex),
-                    ('pagingSize', '20'),
+                    ('pagingSize', '80'),
                     ('viewType', 'list'),
                     ('productSet', 'total'),
                     ('deliveryFee', ''),
@@ -91,7 +92,7 @@ class Naverspider(scrapy.Spider):
             }
             number = 1
             ForTrycount = 0
-            while number < 2 :
+            while number < 14 :
                 print('number = ',number)
 
                 # 네이버를 향한 Request 생성 and 네이버로부터 response 받기
@@ -137,36 +138,36 @@ class Naverspider(scrapy.Spider):
                 case = 'drop'
 
             naver_pdps = response.css(path)          
-            item = {}
+            item = HiLabMIItem()
 
             if case == 'naver':                 #네이버쇼핑
                 for naver_pdp in naver_pdps:
                     tagIdx = len(naver_pdp.css('.top_cell__3DnEV  > em'))
                     for i in range(0,tagIdx):
                         if "브랜드" in naver_pdp.css('.top_cell__3DnEV::text')[i].get() :
-                            item['brand'] = naver_pdp.css('.top_cell__3DnEV > em ::text')[i].get()
+                            item['pr1br'] = naver_pdp.css('.top_cell__3DnEV > em ::text')[i].get()
                             break;
                         else:
-                            item['brand'] = 'N/A' 
+                            item['pr1br'] = 'N/A' 
                 
-                    item['branshop'] = itemPicker('.brandShortCut_info_brand__2nvX3 > a::attr(href)')
-                    item['seller'] = itemPicker('.lowestPrice_delivery_price__3f-2l > span::text')
-                    item['sellershop'] = itemPicker('.buyButton_compare_wrap__7LRui > a::attr(href)')
-                    item['product'] = itemPicker('.top_summary_title__15yAr > h2::text')
-                    item['sku'] = itemPicker('.top_summary_title__15yAr > h2::text')
-                    item['dcprice'] = itemPicker('.lowestPrice_low_price__fByaG > em::text')
-                    item['stock'] = "N/A"
+                    item['brlk'] = itemPicker('.brandShortCut_info_brand__2nvX3 > a::attr(href)')
+                    item['ta'] = itemPicker('.lowestPrice_delivery_price__3f-2l > span::text')
+                    item['talk'] = itemPicker('.buyButton_compare_wrap__7LRui > a::attr(href)')
+                    item['pr1nm'] = itemPicker('.top_summary_title__15yAr > h2::text')
+                    item['pr1id'] = itemPicker('.top_summary_title__15yAr > h2::text')
+                    item['dcpr'] = itemPicker('.lowestPrice_low_price__fByaG > em::text')
+                    item['soldout'] = "N/A"
                     
                     if naver_pdp.css('.lowestPrice_price_area__OkxBK > div::text')[2].get() =="무료배송":
-                        item['deliveryFee'] = "Y"
+                        item['ts'] = "Y"
                     else: 
-                        item['deliveryFee'] = "N"
+                        item['ts'] = "N"
                     optionlen = len(naver_pdp.css('.filter_text__3m_XA::text'))
                     option = ""
                     for i in range(1,optionlen):
                         option = option+naver_pdp.css('.filter_text__3m_XA::text')[i-1].get()
 
-                    item['option'] = option
+                    item['pr1va'] = option
                     mem = response.css('.productList_inner__3wBIh')     #멤버쉽 데이터 read용 css path 
                     membershipIdx = len(mem[0].css('.benefitLayer_benefit__6Fkx6 > p::text'))
                     membershipStr = ""
@@ -178,9 +179,9 @@ class Naverspider(scrapy.Spider):
                     else:
                         membershipStr = 'N/A'
 
-                    item['membership'] = membershipStr
-                    item['productDetail'] = "N/A"#naver_pdp.css('.specInfo_section_spec__2KP4f > div::text').get()
-                    item['url'] = response.url
+                    item['msbf'] = membershipStr
+                    item['prdetail'] = "N/A"#naver_pdp.css('.specInfo_section_spec__2KP4f > div::text').get()
+                    item['detail_link'] = response.url
                     print('WARNING-------------------------------------------------',tagIdx)
                     yield item
             elif case == 'smart':               #네이버 스마트쇼핑
@@ -189,60 +190,60 @@ class Naverspider(scrapy.Spider):
                 for naver_pdp in naver_pdps:
                     for i in range(0,tableIdx):
                         if naver_pdp.css('._1iuv6pLHMD')[i].get() == "브랜드":
-                            item['brand'] = naver_pdp.css('.ABROiEshTD::text')[i].get()
+                            item['pr1br'] = naver_pdp.css('.ABROiEshTD::text')[i].get()
                             break;
                         else :
-                            item['brand'] = 'N/A'
+                            item['pr1br'] = 'N/A'
 
-                    item['branshop'] = 'N/A'
-                    item['seller'] = response.css('.KasFrJs3SA::text').get()        #최상위에 있는 판매사이트 명을 가져오기 위해 path를 분리함
-                    item['sellershop'] = 'N/A'
-                    item['product'] = itemPicker('._3oDjSvLwq9 _copyable::text')
+                    item['brlk'] = 'N/A'
+                    item['ta'] = response.css('.KasFrJs3SA::text').get()        #최상위에 있는 판매사이트 명을 가져오기 위해 path를 분리함
+                    item['talk'] = 'N/A'
+                    item['pr1nm'] = itemPicker('._3oDjSvLwq9 _copyable::text')
                     for i in range(0,tableIdx):
                         if naver_pdp.css('._1iuv6pLHMD')[i].get() == "모델명":
-                            item['sku'] = itemPicker('.ABROiEshTD::text')[i]                    
-                    item['dcprice'] = itemPicker('._1LY7DqCnwR::text')
-                    item['stock'] = "N/A"
+                            item['pr1id'] = itemPicker('.ABROiEshTD::text')[i]                    
+                    item['dcpr'] = itemPicker('._1LY7DqCnwR::text')
+                    item['soldout'] = "N/A"
                     
                     if itemPicker('.bd_ChMMo::text')[1] =="무료배송":
-                        item['deliveryFee'] = "Y"
+                        item['ts'] = "Y"
                     else: 
-                        item['deliveryFee'] = "N"
+                        item['ts'] = "N"
                     
-                    item['option'] = 'N/A'                   
-                    item['membership'] = 'N/A'
-                    item['productDetail'] = 'N/A'#naver_pdp.css('.specInfo_section_spec__2KP4f > div::text').get()
-                    item['url'] = response.url
+                    item['pr1va'] = 'N/A'                   
+                    item['msbf'] = 'N/A'
+                    item['prdetail'] = 'N/A'#naver_pdp.css('.specInfo_section_spec__2KP4f > div::text').get()
+                    item['detail_link'] = response.url
                     yield item
             elif case == 'drop' :       #외부 사이트
-                item['brand'] = '오류'
-                item['branshop'] = '외부사이트'
-                item['seller'] ='N/A'
-                item['sellershop'] ='N/A'
-                item['product'] ='N/A'
-                item['sku'] ='N/A'
-                item['dcprice'] ='N/A'
-                item['stock'] ='N/A'
-                item['deliveryFee'] ='N/A'
-                item['option'] ='N/A'
-                item['membership'] ='N/A'
-                item['productDetail'] = 'N/A'
-                item['url'] = response.url
+                item['pr1br'] = '오류'
+                item['brlk'] = '외부사이트'
+                item['ta'] ='N/A'
+                item['talk'] ='N/A'
+                item['pr1nm'] ='N/A'
+                item['pr1id'] ='N/A'
+                item['dcpr'] ='N/A'
+                item['soldout'] ='N/A'
+                item['ts'] ='N/A'
+                item['pr1va'] ='N/A'
+                item['msbf'] ='N/A'
+                item['prdetail'] = 'N/A'
+                item['detail_link'] = response.url
                 yield item
             else :                      #그 외 오류
-                item['brand'] = '오류'
-                item['branshop'] = e
-                item['seller'] ='N/A'
-                item['sellershop'] ='N/A'
-                item['product'] ='N/A'
-                item['sku'] ='N/A'
-                item['dcprice'] ='N/A'
-                item['stock'] ='N/A'
-                item['deliveryFee'] ='N/A'
-                item['option'] ='N/A'
-                item['membership'] ='N/A'
-                item['productDetail'] = 'N/A'
-                item['url'] = response.url           
+                item['pr1br'] = '오류'
+                item['brlk'] = e
+                item['ta'] ='N/A'
+                item['talk'] ='N/A'
+                item['pr1nm'] ='N/A'
+                item['pr1id'] ='N/A'
+                item['dcpr'] ='N/A'
+                item['soldout'] ='N/A'
+                item['ts'] ='N/A'
+                item['pr1va'] ='N/A'
+                item['msbf'] ='N/A'
+                item['prdetail'] = 'N/A'
+                item['detail_link'] = response.url           
                 yield item
         except Exception as e:
             print('e: ', e)
