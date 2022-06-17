@@ -140,7 +140,7 @@ class Naverspider(scrapy.Spider):
             naver_pdps = response.css(path)          
             item = HiLabMIItem()
 
-            if case == 'naver':                 #네이버쇼핑
+            if case == 'naver':                 #네이버쇼핑일때
                 for naver_pdp in naver_pdps:
                     tagIdx = len(naver_pdp.css('.top_cell__3DnEV  > em'))
                     for i in range(0,tagIdx):
@@ -148,7 +148,7 @@ class Naverspider(scrapy.Spider):
                             item['pr1br'] = naver_pdp.css('.top_cell__3DnEV > em ::text')[i].get()
                             break;
                         else:
-                            item['pr1br'] = 'N/A' 
+                            item['pr1br'] = 'N/A'
                 
                     item['brlk'] = itemPicker('.brandShortCut_info_brand__2nvX3 > a::attr(href)')
                     item['ta'] = itemPicker('.lowestPrice_delivery_price__3f-2l > span::text')
