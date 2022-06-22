@@ -12,13 +12,9 @@ class Naverspider(scrapy.Spider):
     allowed_domains = ['shopping.naver.com']
     start_urls = ['https://search.shopping.naver.com/search/all?query=TV&frm=NVSHATC&prevQuery=TV']
     custom_settings = {
-    #     'DOWNLOADER_MIDDLEWARES' : {
-    #         'mi.middlewares.MiDownloaderMiddleware' : 100
-    #     }
         'ITEM_PIPELINES': {
             'mi.pipelines.NaverPipeline': 300
         },
-        'DOWNLOAD_DELAY' : 1
     }
     
     def start_requests(self):
@@ -57,7 +53,7 @@ class Naverspider(scrapy.Spider):
                 params = (
                     ('sort', 'rel'),
                     ('pagingIndex', pageingIndex),
-                    ('pagingSize', '80'),
+                    ('pagingSize', '40'),
                     ('viewType', 'list'),
                     ('productSet', 'total'),
                     ('deliveryFee', ''),
@@ -92,7 +88,7 @@ class Naverspider(scrapy.Spider):
             }
             number = 1
             ForTrycount = 0
-            while number < 14 :
+            while number < 2 :
                 print('number = ',number)
 
                 # 네이버를 향한 Request 생성 and 네이버로부터 response 받기
@@ -113,10 +109,10 @@ class Naverspider(scrapy.Spider):
     
     def parse_pdp(self, response):
 
-        def itemPicker(xpath): #데이터 추출함수
+        def itemPicker(path): #데이터 추출함수
             value = ""
             try :
-                value = naver_pdp.css(xpath).get()
+                value = naver_pdp.css(path).get()
                 if len(value) > 0:
                     return value
                 else:
@@ -149,7 +145,10 @@ class Naverspider(scrapy.Spider):
                             break;
                         else:
                             item['pr1br'] = 'N/A'
-                
+                    cate = response.css('.style_container__3iYev')
+                    item['pr1ca'] = cate.css('.top_breadcrumb__yrBH6 > span::text')[1].get()
+                    item['pr2ca'] = cate.css('.top_breadcrumb__yrBH6 > span::text')[2].get()
+                    item['pr3ca'] = cate.css('.top_breadcrumb__yrBH6 > span::text')[3].get()
                     item['brlk'] = itemPicker('.brandShortCut_info_brand__2nvX3 > a::attr(href)')
                     item['ta'] = itemPicker('.lowestPrice_delivery_price__3f-2l > span::text')
                     item['talk'] = itemPicker('.buyButton_compare_wrap__7LRui > a::attr(href)')
