@@ -14,7 +14,7 @@ class Naverspider(scrapy.Spider):
     custom_settings = {
         'ITEM_PIPELINES': {
             'mi.pipelines.NaverPipeline': 300
-        },
+        }
     }
     
     def start_requests(self):
@@ -144,7 +144,7 @@ class Naverspider(scrapy.Spider):
                             item['pr1br'] = naver_pdp.css('.top_cell__3DnEV > em ::text')[i].get()
                             break;
                         else:
-                            item['pr1br'] = 'N/A'
+                            item['pr1br'] = ' '
                     cate = response.css('.style_container__3iYev')
                     item['pr1ca'] = cate.css('.top_breadcrumb__yrBH6 > span::text')[1].get()
                     item['pr2ca'] = cate.css('.top_breadcrumb__yrBH6 > span::text')[2].get()
@@ -155,7 +155,34 @@ class Naverspider(scrapy.Spider):
                     item['pr1nm'] = itemPicker('.top_summary_title__15yAr > h2::text')
                     item['pr1id'] = itemPicker('.top_summary_title__15yAr > h2::text')
                     item['dcpr'] = itemPicker('.lowestPrice_low_price__fByaG > em::text')
-                    item['soldout'] = "N/A"
+                    item['soldout'] = ' '
+                    item['sb'] = ' '
+                    item['prco'] = ' '
+                    item['pr1nm'] = ' '
+                    item['pr1pr'] = ' '
+                    item['ta'] = ' '
+                    item['gr'] = ' '
+                    item['revco'] = ' '
+                    item['dcinfo'] = ' '
+                    item['ardate'] = '  '
+                    item['ms'] = ' '
+                    item['opo'] = ' '
+                    item['purchco'] = ' '
+                    item['pgco'] = ' '
+                    item['pr1qt'] = ' '
+                    item['sk'] = ' '
+                    item['pr1br'] = ' '
+                    item['dcrate'] = ' '
+                    item['fullpr'] = ' '
+                    item['revsum'] = ' '
+                    item['revsb'] = ' '
+                    item['reviewer'] = ' '
+                    item['ingrade'] = ' '
+                    item['revdate'] = ' '
+                    item['purchdetail'] = ' '
+                    item['blogrev'] = ' '
+                    item['revviews'] = ' '
+                    item['revdetail'] = ' '
                     
                     if naver_pdp.css('.lowestPrice_price_area__OkxBK > div::text')[2].get() =="무료배송":
                         item['ts'] = "Y"
@@ -217,31 +244,83 @@ class Naverspider(scrapy.Spider):
             elif case == 'drop' :       #외부 사이트
                 item['pr1br'] = '오류'
                 item['brlk'] = '외부사이트'
-                item['ta'] ='N/A'
-                item['talk'] ='N/A'
-                item['pr1nm'] ='N/A'
-                item['pr1id'] ='N/A'
-                item['dcpr'] ='N/A'
-                item['soldout'] ='N/A'
-                item['ts'] ='N/A'
-                item['pr1va'] ='N/A'
-                item['msbf'] ='N/A'
-                item['prdetail'] = 'N/A'
+                item['talk'] =' '
+                item['pr1id'] =' '
+                item['dcpr'] =' '
+                item['ts'] =' '
+                item['pr1va'] =' '
+                item['msbf'] =' '
+                item['prdetail'] = ' '
+                item['soldout'] = ' '
+                item['sb'] = ' '
+                item['prco'] = ' '
+                item['pr1nm'] = ' '
+                item['pr1pr'] = ' '
+                item['ta'] = ' '
+                item['gr'] = ' '
+                item['revco'] = ' '
+                item['dcinfo'] = ' '
+                item['ardate'] = '  '
+                item['ms'] = ' '
+                item['opo'] = ' '
+                item['purchco'] = ' '
+                item['pgco'] = ' '
+                item['pr1qt'] = ' '
+                item['sk'] = ' '
+                item['dcrate'] = ' '
+                item['fullpr'] = ' '
+                item['revsum'] = ' '
+                item['revsb'] = ' '
+                item['reviewer'] = ' '
+                item['ingrade'] = ' '
+                item['revdate'] = ' '
+                item['purchdetail'] = ' '
+                item['blogrev'] = ' '
+                item['revviews'] = ' '
+                item['revdetail'] = ' '
                 item['detail_link'] = response.url
                 yield item
             else :                      #그 외 오류
                 item['pr1br'] = '오류'
                 item['brlk'] = e
-                item['ta'] ='N/A'
-                item['talk'] ='N/A'
-                item['pr1nm'] ='N/A'
-                item['pr1id'] ='N/A'
-                item['dcpr'] ='N/A'
-                item['soldout'] ='N/A'
-                item['ts'] ='N/A'
-                item['pr1va'] ='N/A'
-                item['msbf'] ='N/A'
-                item['prdetail'] = 'N/A'
+                item['soldout'] = ' '
+                item['sb'] = ' '
+                item['prco'] = ' '
+                item['pr1nm'] = ' '
+                item['pr1pr'] = ' '
+                item['ta'] = ' '
+                item['gr'] = ' '
+                item['revco'] = ' '
+                item['dcinfo'] = ' '
+                item['ardate'] = '  '
+                item['ms'] = ' '
+                item['opo'] = ' '
+                item['purchco'] = ' '
+                item['pr1qt'] = ' '
+                item['pgco'] = ' '
+                item['sk'] = ' '
+                item['pr1br'] = ' '
+                item['dcrate'] = ' '
+                item['fullpr'] = ' '
+                item['revsum'] = ' '
+                item['revsb'] = ' '
+                item['reviewer'] = ' '
+                item['ingrade'] = ' '
+                item['revdate'] = ' '
+                item['purchdetail'] = ' '
+                item['blogrev'] = ' '
+                item['revviews'] = ' '
+                item['revdetail'] = ' '
+                item['ta'] =' '
+                item['talk'] =' '
+                item['pr1nm'] =' '
+                item['pr1id'] =' '
+                item['dcpr'] =' '
+                item['soldout'] =' '
+                item['ts'] =' '
+                item['pr1va'] =' '
+                item['msbf'] =' '
+                item['prdetail'] = ' '
                 item['detail_link'] = response.url           
                 yield item
         except Exception as e:

@@ -62,12 +62,23 @@ DOWNLOAD_DELAY = 1
 
 # Configure item pipelines
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
-# ITEM_PIPELINES = {                    #개별 파이프라인 설정을 위해 전역설정 해제함
-#    'mi.pipelines.CsvPipeline': 300,
-#    # 'mi.pipelines.XmlPipeline': 300,
-#    # 'mi.pipelines.JsonPipeline': 300,
-#     'scrapy.pipelines.images.ImagesPipeline': 1,
-# }
+ITEM_PIPELINES = {
+   'scrapyhttppipeline.scrapyhttppipeline.HttpPostPipeline': 500
+}
+
+# Url to your server, which accepts POST requests
+HTTP_POST_PIPELINE_URL = 'http://localhost'
+
+# Any custom headers you want to add, e.g. authentication
+HTTP_POST_PIPELINE_HEADERS = {
+    'X-Authorization': 'xxx'
+}
+
+# If you want to send more items at once (and have less HTTP POST requests incoming.)
+# If True items will be send as [{key1:val1},{key1:val1}] instead of {key1:val1}
+HTTP_POST_PIPELINE_BUFFERED = False
+HTTP_POST_PIPELINE_BUFFER_SIZE = 100
+
 IMAGES_STORE = './images'
 if not os.path.isdir(IMAGES_STORE):
         os.mkdir(IMAGES_STORE)
@@ -88,7 +99,7 @@ if not os.path.isdir(IMAGES_STORE):
 # Enable and configure HTTP caching (disabled by default)
 # See https://docs.scrapy.org/en/latest/topics/downloader-middleware.html#httpcache-middleware-settings
 HTTPCACHE_ENABLED = True
-HTTPCACHE_EXPIRATION_SECS = 3600
+HTTPCACHE_EXPIRATION_SECS = 1800
 #HTTPCACHE_DIR = 'httpcache'
 #HTTPCACHE_IGNORE_HTTP_CODES = []
 #HTTPCACHE_STORAGE = 'scrapy.extensions.httpcache.FilesystemCacheStorage'
