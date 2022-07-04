@@ -16,8 +16,8 @@ class HiLabMIItem(scrapy.Item):
     
     # <카테고리 페이지>
     pr1ca = scrapy.Field()   # 카테고리_1 카테고리
-    #pr2ca = scrapy.Field() # 카테고리 나눌 시에 사용
-    #pr3ca = scrapy.Field() # 카테고리 나눌 시에 사용
+    pr2ca = scrapy.Field() # 카테고리 나눌 시에 사용
+    pr3ca = scrapy.Field() # 카테고리 나눌 시에 사용
     # ex) pr1ca = 가전디지털, pr2ca = TV/영상가전, pr3ca = TV
     sb = scrapy.Field() # 카테고리_3 정렬기준(임의) - sort by
     prco = scrapy.Field()  # 카테고리_4 총 제품 수(임의) - product count
