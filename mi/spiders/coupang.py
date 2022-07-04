@@ -5,6 +5,7 @@ from attr import attrib
 from pkg_resources import resource_isdir
 from scrapy.linkextractors import LinkExtractor
 import scrapy
+
 from mi.items import HiLabMIItem
 
 class CoupangSpider(scrapy.Spider):
