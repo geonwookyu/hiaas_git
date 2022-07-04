@@ -12,7 +12,7 @@ class TutorialItem(scrapy.Item):
     pass
 
 class HiLabMIItem(scrapy.Item):
-    detail_link = scrapy.Field()
+    detail_link = scrapy.Field()    # 제품 상세페이지 링크
     
     # <카테고리 페이지>
     pr1ca = scrapy.Field()   # 카테고리_1 카테고리
