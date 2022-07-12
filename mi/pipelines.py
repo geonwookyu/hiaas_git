@@ -1,44 +1,69 @@
-from itemadapter import ItemAdapter
-from scrapy.exporters import CsvItemExporter, XmlItemExporter, JsonItemExporter
+import json
+# import logging
 
-class CsvPipeline(object):
-    def __init__(self):
-        self.file = open("./coupang.csv", 'wb')
-        self.exporter = CsvItemExporter(self.file, encoding='utf-8-sig')
-        self.exporter.start_exporting()
- 
-    def close_spider(self, spider):
-        self.exporter.finish_exporting()
-        self.file.close()
- 
+import requests
+from scrapy.utils.serialize import ScrapyJSONEncoder
+from twisted.internet.defer import DeferredLock
+from twisted.internet.threads import deferToThread
+from itemadapter import is_item, ItemAdapter
+
+
+
+class HttpPostPipeline(object):
+    settings = None
+    items_buffer = []
+
+    DEFAULT_HTTP_POST_PIPELINE_BUFFERED = False
+    DEFAULT_HTTP_POST_PIPELINE_BUFFER_SIZE = 100
+
+    def __init__(self, url, headers=None, serialize_func=None):
+        """Initialize pipeline.
+        Parameters
+        ----------
+        url : StrictRedis
+            Redis client instance.
+        serialize_func : callable
+            Items serializer function.
+        """
+        self.url = url
+        self.headers = headers if headers else {}
+        self.serialize_func = serialize_func
+        self._lock = DeferredLock()
+
+    @classmethod
+    def from_crawler(cls, crawler):
+        params = {
+            'url': crawler.settings.get('HTTP_POST_PIPELINE_URL'),
+        }
+        if crawler.settings.get('HTTP_POST_PIPELINE_HEADERS'):
+            params['headers'] = crawler.settings['HTTP_POST_PIPELINE_HEADERS']
+
+        ext = cls(**params)
+        ext.settings = crawler.settings
+
+        return ext
+
     def process_item(self, item, spider):
-        self.exporter.export_item(item)
+        if self.settings.get('HTTP_POST_PIPELINE_BUFFERED', self.DEFAULT_HTTP_POST_PIPELINE_BUFFERED):
+            self._lock.run(self._process_items, item)
+            return item
+        else:
+            return deferToThread(self._process_item, item, spider)
+
+    def _process_item(self, item, spider):
+        encoding= self.settings.get('FEED_EXPORT_ENCODING','utf-8')
+        d = ItemAdapter(item).asdict()
+        data = json.dumps(d,ensure_ascii=False).encode(encoding)
+        requests.post(self.url, data=data, headers=self.headers)
         return item
 
-class JsonPipeline(object):
-    def __init__(self):
-        self.file = open("./movies.json", 'wb')
-        self.exporter = JsonItemExporter(self.file, encoding='utf-8')
-        self.exporter.start_exporting()
- 
-    def close_spider(self, spider):
-        self.exporter.finish_exporting()
-        self.file.close()
- 
-    def process_item(self, item, spider):
-        self.exporter.export_item(item)
-        return item
+    def _process_items(self, item):
+        self.items_buffer.append(item)
+        if len(self.items_buffer) >= int(self.settings.get('HTTP_POST_PIPELINE_BUFFER_SIZE',
+                                                           self.DEFAULT_HTTP_POST_PIPELINE_BUFFER_SIZE)):
+            deferToThread(self.send_items, self.items_buffer)
+            self.items_buffer = []
 
-class XmlPipeline(object):
-    def __init__(self):
-        self.file = open("./movies.xml", 'wb')
-        self.exporter = XmlItemExporter(self.file, encoding='utf-8')
-        self.exporter.start_exporting()
- 
     def close_spider(self, spider):
-        self.exporter.finish_exporting()
-        self.file.close()
- 
-    def process_item(self, item, spider):
-        self.exporter.export_item(item)
-        return item
+        if len(self.items_buffer) > 0:
+            deferToThread(self.send_items, self.items_buffer)

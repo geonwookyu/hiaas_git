@@ -18,6 +18,7 @@ USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTM
 
 # Obey robots.txt rules
 ROBOTSTXT_OBEY = False
+FEED_EXPORT_ENCODING = 'utf-8'
 
 # Configure maximum concurrent requests performed by Scrapy (default: 16)
 #CONCURRENT_REQUESTS = 32
@@ -63,15 +64,17 @@ ROBOTSTXT_OBEY = False
 # Configure item pipelines
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
 ITEM_PIPELINES = {
-   'scrapyhttppipeline.scrapyhttppipeline.HttpPostPipeline': 500
+   #'scrapyhttppipeline.scrapyhttppipeline.HttpPostPipeline': 800
+   'mi.pipelines.HttpPostPipeline': 800
 }
 
 # Url to your server, which accepts POST requests
-HTTP_POST_PIPELINE_URL = 'http://localhost'
+#HTTP_POST_PIPELINE_URL = 'http://localhost'
+HTTP_POST_PIPELINE_URL = 'http://192.168.0.53:8082'
 
 # Any custom headers you want to add, e.g. authentication
 HTTP_POST_PIPELINE_HEADERS = {
-    'X-Authorization': 'xxx'
+    'Content-Type': 'text/plain; charset=UTF-8'
 }
 
 # If you want to send more items at once (and have less HTTP POST requests incoming.)
