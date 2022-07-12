@@ -8,7 +8,6 @@ from twisted.internet.threads import deferToThread
 from itemadapter import is_item, ItemAdapter
 
 
-
 class HttpPostPipeline(object):
     settings = None
     items_buffer = []
@@ -16,7 +15,7 @@ class HttpPostPipeline(object):
     DEFAULT_HTTP_POST_PIPELINE_BUFFERED = False
     DEFAULT_HTTP_POST_PIPELINE_BUFFER_SIZE = 100
 
-    def __init__(self, url, headers=None, serialize_func=None):
+    def __init__(self, url, headers=None):
         """Initialize pipeline.
         Parameters
         ----------
@@ -27,7 +26,7 @@ class HttpPostPipeline(object):
         """
         self.url = url
         self.headers = headers if headers else {}
-        self.serialize_func = serialize_func
+        # self.serialize_func = serialize_func
         self._lock = DeferredLock()
 
     @classmethod
@@ -51,9 +50,7 @@ class HttpPostPipeline(object):
             return deferToThread(self._process_item, item, spider)
 
     def _process_item(self, item, spider):
-        encoding= self.settings.get('FEED_EXPORT_ENCODING','utf-8')
-        d = ItemAdapter(item).asdict()
-        data = json.dumps(d,ensure_ascii=False).encode(encoding)
+        data = self._serialize_func(item)
         requests.post(self.url, data=data, headers=self.headers)
         return item
 
@@ -63,7 +60,18 @@ class HttpPostPipeline(object):
                                                            self.DEFAULT_HTTP_POST_PIPELINE_BUFFER_SIZE)):
             deferToThread(self.send_items, self.items_buffer)
             self.items_buffer = []
+            
+    def send_items(self, items):
+        serialized_items = [self._serialize_func(item) for item in items]
+        requests.post(self.url, data=[json.loads(data) for data in serialized_items], headers=self.headers)
 
     def close_spider(self, spider):
         if len(self.items_buffer) > 0:
             deferToThread(self.send_items, self.items_buffer)
+    
+    def _serialize_func(self, item):
+        encoding= self.settings.get('FEED_EXPORT_ENCODING','utf-8')
+        d = ItemAdapter(item).asdict()
+        data = json.dumps(d,ensure_ascii=False).encode(encoding)
+        return data
+
