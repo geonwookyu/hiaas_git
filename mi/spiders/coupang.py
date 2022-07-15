@@ -18,7 +18,7 @@ class CoupangSpider(scrapy.Spider):
         listSize = '72'
         sorter = 'scoreDesc' # 쿠팡 랭킹 순
         urls=[]
-        for page in range(1,2):
+        for page in range(1,14):
             global url_page
             
             #url_page = f'https://www.coupang.com/np/search?q=tv&channel=user&component=&eventCategory=SRP&trcid=&traid=&sorter=scoreDesc&minPrice=&maxPrice=&priceRange=&filterType=&listSize=72&filter=&isPriceRange=false&brand=&offerCondition=&rating=0&page={i}&rocketAll=false&searchIndexingToken=&backgroundColor='
@@ -81,40 +81,40 @@ class CoupangSpider(scrapy.Spider):
 
             ##item['gr'] = response.css('span.rating-star-num::attr(style)').get().replace("width: ","").replace(";","")      # 평점 -> 5점 만점이 아닌 %로 나옴
             #***********************************************************************************
-            grade = response.css('span.rating-star-num::attr(style)').get()      # 평점(O)
-            if "100.0" in grade:
+            gr = re.sub(r'[^0-9.]', '', str(response.css('span.rating-star-num::attr(style)').get()))      # 평점(O)
+            if "100.0" in gr:
                 item['gr'] = 5.0
-            elif "90.0" in grade:
+            elif "90.0" in gr:
                 item['gr'] = 4.5
-            elif "80.0" in grage:
+            elif "80.0" in gr:
                 item['gr'] = 4.0
-            elif "70.0" in grade:
+            elif "70.0" in gr:
                 item['gr'] = 3.5
-            elif "60.0" in grade:
+            elif "60.0" in gr:
                 item['gr'] = 3.0
-            elif "50.0" in grade:
+            elif "50.0" in gr:
                 item['gr'] = 2.5
-            elif "40.0" in grade:
+            elif "40.0" in gr:
                 item['gr'] = 2.0
-            elif "30.0" in grade:
+            elif "30.0" in gr:
                 item['gr'] = 1.5
-            elif "20.0" in grade:
+            elif "20.0" in gr:
                 item['gr'] = 1.0
-            elif "10.0" in grade:
+            elif "10.0" in gr:
                 item['gr'] = 0.5
             else:
                 item['gr'] = 0
 
-            item['revco'] = re.sub(r'[^0-9]', '', response.css('span.count::text').get())   # 리뷰개수(O)
+            item['revco'] = re.sub(r'[^0-9]', '', str(response.css('span.count::text').get()))   # 리뷰개수(O)
 
             ##item['dcinfo'] = response.css('span.discount-rate::text').get().replace("\n","").replace(" ","").replace("%","")   # 할인정보
             ##if item['dcinfo'] != "":
             ##    item['dcinfo'] = response.css('span.discount-rate::text').get().replace("\n","").replace(" ","")
             #******************************************************************************************************************************
-            dcinfo = response.css('span.discount-rate::text').get().strip()   # 할인정보(O) - 할인율(%)로 가져오고, 할인 없는 것은 "No Discount"
-            if dcinfo == "%":
-                dcinfo = "No Discount" #필요??
-            item['dcinfo'] = dcinfo
+            dcinfo = response.css('span.discount-rate::text').get()   # 할인정보(O) - 할인율(%)로 가져오고, 할인 없는 것은 "No Discount"
+            if (dcinfo == "%") or (dcinfo is None):
+                dcinfo = ""
+            item['dcinfo'] = dcinfo.strip()
 
             item['ts'] = response.css('div.prod-shipping-fee-message > span > em.prod-txt-bold::text').get()    # 무료배송 유무(O)
             if item['ts'] is None:  # 무료배송 아닐 때
@@ -133,11 +133,11 @@ class CoupangSpider(scrapy.Spider):
                 if ardate is None:
                     ardate = response.css('em.prod-txt-onyx.prod-txt-green-2::text').get()     # 로켓일 때 도착예정일자(O)
                     re_pattern = re.compile(r'\d+')
-                    ardate = '/'.join(re.findall(re_pattern, ardate))
+                    ardate = '/'.join(re.findall(re_pattern, str(ardate)))
                     item['ardate'] = ardate
                 else:
                     re_pattern = re.compile(r'\d+')
-                    ardate = '/'.join(re.findall(re_pattern, ardate))
+                    ardate = '/'.join(re.findall(re_pattern, str(ardate)))
                     item['ardate'] = ardate
             else:
                 item['ardate'] = ardate
@@ -146,7 +146,7 @@ class CoupangSpider(scrapy.Spider):
             ##item['ms'] = response.css('span.ccid-txt::text').get()  # 멤버십 적용유무
             ##if response.css('span.ccid-txt::text').get() != None:
             ##    item['ms'] = response.css('span.ccid-txt::text').get().replace("최대 ","").replace(" 카드 즉시할인","")
-            ##***********************************************************************************************
+            #***********************************************************************************************
             ms_list = []
             if response.css('img.delivery-badge-img::attr(src)').get() == "//image10.coupangcdn.com/image/badges/rocket/rocket_logo.png":
                 ms_list.append("로켓배송")  # 멤버십 적용유무 -> 로켓배송(O)
@@ -204,10 +204,13 @@ class CoupangSpider(scrapy.Spider):
 
             ##item['fullpr'] = response.css('span.origin-price::text').get().replace("\n","").replace(" ","")   # 정가 -> 값 안 나오는 거 있음
             #********************************************************************************************
-            fullpr = response.css('span.origin-price::text').get().replace("원", "")   # 정가(O)
-            if fullpr == "":
-                fullpr = response.css('span.total-price > strong::text').get()
-            item['fullpr'] = fullpr
+            fullpr = response.css('span.origin-price::text').get()   # 정가(O)
+            if fullpr == "원":
+                item['fullpr'] = response.css('span.total-price > strong::text').get()
+            elif fullpr is None:
+                item['fullpr'] = response.css('div.prod-sale-price > strong::text').get()   # 중고상품일 때
+            else:
+                item['fullpr'] = fullpr.replace("원", "")
             
             # 쿠팡판매가, 와우할인가 나눠져 있을 때
             ##item['dcpr'] = response.css('div.prod-sale-price.instant-discount > span.total-price > strong::text').get()   # 쿠팡판매가
