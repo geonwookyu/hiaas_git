@@ -13,6 +13,7 @@ class TutorialItem(scrapy.Item):
 
 class HiLabMIItem(scrapy.Item):
     detail_link = scrapy.Field()    # 제품 상세페이지 링크
+    rank = scrapy.Field()   # 제품 순위
     
     # <카테고리 페이지>
     pr1ca = scrapy.Field()   # 카테고리_1 카테고리
