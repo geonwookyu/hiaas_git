@@ -111,9 +111,9 @@ class CoupangSpider(scrapy.Spider):
             ##if item['dcinfo'] != "":
             ##    item['dcinfo'] = response.css('span.discount-rate::text').get().replace("\n","").replace(" ","")
             #******************************************************************************************************************************
-            dcinfo = response.css('span.discount-rate::text').get()   # 할인정보(O) - 할인율(%)로 가져오고, 할인 없는 것은 "No Discount"
+            dcinfo = response.css('span.discount-rate::text').get()   # 할인정보(O) - 할인율(%)로 가져오고, 할인 없는 것은 ""
             if (dcinfo == "%") or (dcinfo is None):
-                dcinfo = ""
+                dcinfo = " "
             item['dcinfo'] = dcinfo.strip()
 
             item['ts'] = response.css('div.prod-shipping-fee-message > span > em.prod-txt-bold::text').get()    # 무료배송 유무(O)
@@ -131,17 +131,22 @@ class CoupangSpider(scrapy.Spider):
             if ardate is None:
                 ardate = response.css('em.prod-txt-onyx.prod-txt-font-14::text').get()     # 로켓 아닐 때 도착예정일자(O)
                 if ardate is None:
-                    ardate = response.css('em.prod-txt-onyx.prod-txt-green-2::text').get()     # 로켓일 때 도착예정일자(O)
-                    re_pattern = re.compile(r'\d+')
-                    ardate = '/'.join(re.findall(re_pattern, str(ardate)))
-                    item['ardate'] = ardate
+                    ardate = response.css('em.prod-txt-onyx::text').get()   # 로켓 아닐 때 도착예정일자2(O)
+                    if ardate is None:
+                        ardate = response.css('em.prod-txt-onyx.prod-txt-green-2::text').get()     # 로켓일 때 도착예정일자(O)
+                        re_pattern = re.compile(r'\d+')
+                        ardate = '/'.join(re.findall(re_pattern, str(ardate)))
+                        item['ardate'] = ardate
+                    else:
+                        re_pattern = re.compile(r'\d+')
+                        ardate = '/'.join(re.findall(re_pattern, str(ardate)))
+                        item['ardate'] = ardate
                 else:
                     re_pattern = re.compile(r'\d+')
                     ardate = '/'.join(re.findall(re_pattern, str(ardate)))
                     item['ardate'] = ardate
             else:
                 item['ardate'] = ardate
-            
             
             ##item['ms'] = response.css('span.ccid-txt::text').get()  # 멤버십 적용유무
             ##if response.css('span.ccid-txt::text').get() != None:
@@ -215,7 +220,7 @@ class CoupangSpider(scrapy.Spider):
             # 쿠팡판매가, 와우할인가 나눠져 있을 때
             ##item['dcpr'] = response.css('div.prod-sale-price.instant-discount > span.total-price > strong::text').get()   # 쿠팡판매가
             ##item['dcpr'] = response.css('div.prod-coupon-price.prod-major-price > span.total-price > strong::text').get()   # 와우할인가
-            ##item['dcpr'] = response.css('span.total-price > strong::text').getall() ## 쿠팡판매가, 와우판매가 2개 다 cawling
+            item['dcpr'] = response.css('span.total-price > strong::text').getall() ## 쿠팡판매가, 와우판매가 2개 다 cawling
             # 쿠팡판매가, 와우할인가 안 나눠져 있을 때
             ##item['dcpr'] = response.css('prod-sale-price.prod-major-price > span.total-price > strong::text').get()
             #위에 '가격' 크롤링 한 css로 똑같이 가져오면 쿠팡판매가, 와우할인가 나뉘어진 상품은 쿠팡판매가가 나옴.(75)
@@ -230,7 +235,7 @@ class CoupangSpider(scrapy.Spider):
             #item['pr1va'] = response.css('div.prod-option__dropdown-item-title > strong::text').get()   # 제품 구매 옵션 -> 아직 못 긁어왔음 javascript
 
             #item['msbf'] = response.css('strong.reward-final-cashback-amt::text').get() # 멤버십 혜택 -> 아직
-            #item['msbf'] = response.css('strong.tit-txt::text').getall() # 카드 혜택
+            item['msbf'] = response.css('strong.tit-txt::text').getall() # 멤버십 혜택(카드혜택, 캐시적립혜택)
 
             ##item['prdetail'] = response.css('ul.prod-description-attribute > li.prod-attr-item::text').get()    # 제품 상세
             ##prdetail_list=[]
