@@ -35,13 +35,14 @@ DOWNLOAD_DELAY = 3
 #COOKIES_ENABLED = False
 
 # Disable Telnet Console (enabled by default)
-#TELNETCONSOLE_ENABLED = False
+TELNETCONSOLE_ENABLED = False
 
 # Override the default request headers:
-#DEFAULT_REQUEST_HEADERS = {
-#   'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-#   'Accept-Language': 'en',
-#}
+DEFAULT_REQUEST_HEADERS = {
+  'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+  'Accept-Language': 'ko',
+  'referer': 'https://www.google.com'
+}
 
 # Enable or disable spider middlewares
 # See https://docs.scrapy.org/en/latest/topics/spider-middleware.html
@@ -64,13 +65,12 @@ DOWNLOAD_DELAY = 3
 # Configure item pipelines
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
 ITEM_PIPELINES = {
-   #'scrapyhttppipeline.scrapyhttppipeline.HttpPostPipeline': 800
    'mi.pipelines.HttpPostPipeline': 800
 }
 
 # Url to your server, which accepts POST requests
 #HTTP_POST_PIPELINE_URL = 'http://localhost'
-HTTP_POST_PIPELINE_URL = 'http://192.168.0.53:8082'
+HTTP_POST_PIPELINE_URL = 'http://106.252.227.100:8082'
 
 # Any custom headers you want to add, e.g. authentication
 HTTP_POST_PIPELINE_HEADERS = {
