@@ -12,13 +12,15 @@ class TutorialItem(scrapy.Item):
     pass
 
 class HiLabMIItem(scrapy.Item):
+    mid = scrapy.Field()    # 마켓 타입 (ex. naver, coupang)
     detail_link = scrapy.Field()    # 제품 상세페이지 링크
     rank = scrapy.Field()   # 제품 순위
     
     # <카테고리 페이지>
     pr1ca = scrapy.Field()   # 카테고리_1 카테고리
-    #pr2ca = scrapy.Field() # 카테고리 나눌 시에 사용
-    #pr3ca = scrapy.Field() # 카테고리 나눌 시에 사용
+    pr2ca = scrapy.Field() # 카테고리 나눌 시에 사용
+    pr3ca = scrapy.Field() # 카테고리 나눌 시에 사용
+    pr4ca = scrapy.Field() # 카테고리 나눌 시에 사용
     # ex) pr1ca = 가전디지털, pr2ca = TV/영상가전, pr3ca = TV
     sb = scrapy.Field() # 카테고리_3 정렬기준(임의) - sort by
     prco = scrapy.Field()  # 카테고리_4 총 제품 수(임의) - product count
@@ -70,3 +72,6 @@ class HiLabMIItem(scrapy.Item):
     revdetail = scrapy.Field()  # 리뷰_9 리뷰 디테일(임의) - reivew detail
     blogrev = scrapy.Field()    # 리뷰_10 블로그 리뷰(임의) - blog review
     revviews = scrapy.Field()   # 리뷰_11 리뷰 조회수(임의) - review views
+
+    # <수집 시간>
+    # time = scrapy.Field()

@@ -20,6 +20,10 @@ USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTM
 ROBOTSTXT_OBEY = False
 FEED_EXPORT_ENCODING = 'utf-8'
 
+# Collection configuration settings
+KEYWORD_LIST = ['매트리스']
+LIMIT_PAGING_COUNT = 10
+
 # Configure maximum concurrent requests performed by Scrapy (default: 16)
 #CONCURRENT_REQUESTS = 32
 
