@@ -73,7 +73,7 @@ ITEM_PIPELINES = {
 }
 
 # Url to your server, which accepts POST requests
-#HTTP_POST_PIPELINE_URL = 'http://localhost'
+# HTTP_POST_PIPELINE_URL = 'http://localhost'
 HTTP_POST_PIPELINE_URL = 'http://106.252.227.100:8082'
 
 # Any custom headers you want to add, e.g. authentication
@@ -110,3 +110,26 @@ HTTPCACHE_EXPIRATION_SECS = 1800
 #HTTPCACHE_DIR = 'httpcache'
 #HTTPCACHE_IGNORE_HTTP_CODES = []
 #HTTPCACHE_STORAGE = 'scrapy.extensions.httpcache.FilesystemCacheStorage'
+
+
+
+
+
+
+
+# --------------------------------------COUPANG CONFIG-----------------------------------------
+COUPANG_PAGE_COUNT = 3
+COUPANG_CRAWL_DELAY = 2.0
+COUPANG_KEYWORD = '매트리스'
+COUPANG_SORTER = 'scoreDesc'
+COUPANG_LISTSIZE = '72'
+
+
+
+
+
+
+
+
+
+#----------------------------------------------------------------------------------------------
