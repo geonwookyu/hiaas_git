@@ -1,53 +1,62 @@
-from ast import keyword
-from operator import itemgetter
-from pkgutil import iter_modules
-from attr import attrib
-from pkg_resources import resource_isdir
-from scrapy.linkextractors import LinkExtractor
+import json
 import scrapy
 import re
 from mi.items import HiLabMIItem
 
 class CoupangSpider(scrapy.Spider):
-    name = "coupang"
+    name = "coupang2"
 
     def start_requests(self):
-        global keyword
-        global page
-        keyword = 'tv'
-        listSize = '72'
-        sorter = 'scoreDesc' # 쿠팡 랭킹 순
-        urls=[]
-        for page in range(1,14):
-            global url_page
+        # global keyword
+        # global page
+        # keyword = 'tv'
+        # listSize = '72'
+        # sorter = 'scoreDesc' # 쿠팡 랭킹 순
+        # urls=[]
+        # for page in range(1,14):
+        #     global url_page
             
-            #url_page = f'https://www.coupang.com/np/search?q=tv&channel=user&component=&eventCategory=SRP&trcid=&traid=&sorter=scoreDesc&minPrice=&maxPrice=&priceRange=&filterType=&listSize=72&filter=&isPriceRange=false&brand=&offerCondition=&rating=0&page={i}&rocketAll=false&searchIndexingToken=&backgroundColor='
-            url_page = f'https://www.coupang.com/np/search?rocketAll=false&q={keyword}&brand=&offerCondition=&filter=&availableDeliveryFilter=&filterType=&isPriceRange=false&priceRange=&minPrice=&maxPrice=&page={page}&trcid=&traid=&filterSetByUser=true&channel=user&backgroundColor=&component=&rating=0&sorter={sorter}&listSize={listSize}'
-            urls.append(url_page)
+        #     #url_page = f'https://www.coupang.com/np/search?q=tv&channel=user&component=&eventCategory=SRP&trcid=&traid=&sorter=scoreDesc&minPrice=&maxPrice=&priceRange=&filterType=&listSize=72&filter=&isPriceRange=false&brand=&offerCondition=&rating=0&page={i}&rocketAll=false&searchIndexingToken=&backgroundColor='
+        #     url_page = f'https://www.coupang.com/np/search?rocketAll=false&q={keyword}&brand=&offerCondition=&filter=&availableDeliveryFilter=&filterType=&isPriceRange=false&priceRange=&minPrice=&maxPrice=&page={page}&trcid=&traid=&filterSetByUser=true&channel=user&backgroundColor=&component=&rating=0&sorter={sorter}&listSize={listSize}'
+        #     urls.append(url_page)
             
-        for url in urls:
-            yield scrapy.Request(url=url, callback=self.parse_page)
+        # for url in urls:
+        #     yield scrapy.Request(url=url, callback=self.parse_page)
 
-    def parse_page(self, response):
-        try :
-            coupang_sels = response.css('ul.search-product-list > li')
-
-            for coupang_sel in coupang_sels:
-                url = 'https://www.coupang.com' + coupang_sel.css('a.search-product-link::attr(href)').get()
-                
+        with open('coupang1.json', 'r', encoding='UTF-8') as json_file:
+            json_data = json.load(json_file)
+            # logging.error(f'data = {json_data}')
+            # logging.error(f'data_type = {type(json_data)}')
+            
+            for url in json_data:
+                # print(url['detail_link'])
+                url = url['detail_link']
+                # urls.append(url)
+                # url = json_data['detail_link']
+        # for url in urls:
                 yield scrapy.Request(url=url, callback=self.parse_detail)
-        except Exception as e:
-            print('e: ', e)
+
+    # def parse_page(self, response):
+    #     try :
+    #         coupang_sels = response.css('ul.search-product-list > li')
+
+    #         for coupang_sel in coupang_sels:
+    #             url = 'https://www.coupang.com' + coupang_sel.css('a.search-product-link::attr(href)').get()
+                
+    #             yield scrapy.Request(url=url, callback=self.parse_detail)
+    #     except Exception as e:
+    #         print('e: ', e)
 
     def parse_detail(self, response):
         try:
             item = HiLabMIItem()
 
-            item['detail_link'] = response.url  #링크 끝까지 안 나옴 javascript
+            item['detail_link'] = response.url  #상세페이지 링크[O]
 
-            #item['rank']   # 순위 -> javascript
+            # item['rank'] = int(response.url.split('&rank=')[1])   # 순위[O]
+            item['rank'] = response.url.split('&rank=')[1]   # 순위[O]
 
-            #item['pr1ca'] = response.xpath('ul#breadcrumb a::text').getall()   # 카테고리 -> '쿠팡 홈'만 나옴 javascript
+            # item['pr1ca'] = response.css('ul#breadcrumb a::text').getall()   # 카테고리 -> '쿠팡 홈'만 나옴 javascript
             ##//*[@id="breadcrumb"]/li[1]/a     카테고리 xpath
             ##//*[@id="breadcrumb"]/li[2]/a
             ##//*[@id="breadcrumb"]/li[3]/a
@@ -55,16 +64,16 @@ class CoupangSpider(scrapy.Spider):
             #for category in response.css('#breadcrumb > li'):
                 #item['pr2ca'] = category.css('a::text').getall()
                 
-            if "scoreDesc" in url_page: # 정렬기준(O)
-                item['sb'] = "쿠팡 랭킹순"  
-            elif "salePriceAsc" in url_page:
-                item['sb'] = "낮은가격순"
-            elif "salePriceDesc" in url_page:
-                item['sb'] = "높은가격순"
-            elif "saleCountDesc" in url_page:
-                item['sb'] = "판매량순"
-            elif "latestAsc" in url_page:
-                item['sb'] = "최신순"
+            # if "scoreDesc" in url_page: # 정렬기준: 상세페이지 url에는 정보가 없음
+            #     item['sb'] = "쿠팡 랭킹순"  
+            # elif "salePriceAsc" in url_page:
+            #     item['sb'] = "낮은가격순"
+            # elif "salePriceDesc" in url_page:
+            #     item['sb'] = "높은가격순"
+            # elif "saleCountDesc" in url_page:
+            #     item['sb'] = "판매량순"
+            # elif "latestAsc" in url_page:
+            #     item['sb'] = "최신순"
 
             ##item['prco']   # 총 제품 수: 해당없음
 
@@ -80,7 +89,7 @@ class CoupangSpider(scrapy.Spider):
 
             ##item['gr'] = response.css('span.rating-star-num::attr(style)').get().replace("width: ","").replace(";","")      # 평점 -> 5점 만점이 아닌 %로 나옴
             #***********************************************************************************
-            gr = re.sub(r'[^0-9.]', '', str(response.css('span.rating-star-num::attr(style)').get()))      # 평점(O)
+            gr = re.sub(r'[^0-9.]', '', str(response.css('span.rating-star-num::attr(style)').get()))      # 평점: 정규화
             if "100.0" in gr:
                 item['gr'] = 5.0
             elif "90.0" in gr:
@@ -111,9 +120,12 @@ class CoupangSpider(scrapy.Spider):
             ##    item['dcinfo'] = response.css('span.discount-rate::text').get().replace("\n","").replace(" ","")
             #******************************************************************************************************************************
             dcinfo = response.css('span.discount-rate::text').get()   # 할인정보(O) - 할인율(%)로 가져오고, 할인 없는 것은 ""
-            if (dcinfo == "%") or (dcinfo is None):
-                dcinfo = " "
-            item['dcinfo'] = dcinfo.strip()
+            if dcinfo is None:
+                item['dcinfo'] = None
+            elif dcinfo.strip() == "%":
+                item['dcinfo'] = None
+            else:
+                item['dcinfo'] = dcinfo.strip()
 
             item['ts'] = response.css('div.prod-shipping-fee-message > span > em.prod-txt-bold::text').get()    # 무료배송 유무(O)
             if item['ts'] is None:  # 무료배송 아닐 때
@@ -184,11 +196,11 @@ class CoupangSpider(scrapy.Spider):
                 pr1qt = response.css('div.aos-label::text').get()
                 item['pr1qt'] = re.sub(r'[^0-9]', '', str(pr1qt))
 
-            item['pgco'] = page   # 전체 페이지 수(O)
+            # item['pgco'] = page   # 전체 페이지 수: 상세페이지 url에는 정보가 없음
 
     # ---------------------------------------------------------------------------------------------------------------------------------
 
-            item['sk'] = keyword   # 검색 키워드(O)
+            # item['sk'] = keyword   # 검색 키워드: 상세페이지 url에는 정보가 없음
 
     # ---------------------------------------------------------------------------------------------------------------------------------
 
