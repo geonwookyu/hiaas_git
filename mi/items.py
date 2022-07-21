@@ -13,8 +13,10 @@ class TutorialItem(scrapy.Item):
 
 class HiLabMIItem(scrapy.Item):
     mid = scrapy.Field()    # 마켓 타입 (ex. naver, coupang)
+    ctype = scrapy.Field()  # collection type(1:키워드, 2:카테고리)
     detail_link = scrapy.Field()    # 제품 상세페이지 링크
     rank = scrapy.Field()   # 제품 순위
+    ad = scrapy.Field()     # 광고
     
     # <카테고리 페이지>
     pr1ca = scrapy.Field()   # 카테고리_1 카테고리
