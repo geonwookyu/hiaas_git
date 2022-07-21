@@ -5,6 +5,7 @@ from mi.items import HiLabMIItem
 
 class CoupangSpider(scrapy.Spider):
     name = "coupang2"
+    marketType = "coupang"
 
     def start_requests(self):
         # global keyword
@@ -51,10 +52,12 @@ class CoupangSpider(scrapy.Spider):
         try:
             item = HiLabMIItem()
 
+            item['mid'] = self.marketType
+
             item['detail_link'] = response.url  #상세페이지 링크[O]
 
             # item['rank'] = int(response.url.split('&rank=')[1])   # 순위[O]
-            item['rank'] = response.url.split('&rank=')[1]   # 순위[O]
+            item['rank'] = int(response.url.split('&rank=')[1])   # 순위[O]
 
             # item['pr1ca'] = response.css('ul#breadcrumb a::text').getall()   # 카테고리 -> '쿠팡 홈'만 나옴 javascript
             ##//*[@id="breadcrumb"]/li[1]/a     카테고리 xpath
@@ -79,7 +82,7 @@ class CoupangSpider(scrapy.Spider):
 
             item['pr1nm'] = response.css('h2.prod-buy-header__title::text').get()   # 제품명(O)
 
-            item['pr1pr'] = response.css('span.total-price > strong::text').get()   # 가격(O)
+            item['pr1pr'] = int(response.css('span.total-price > strong::text').get().replace(',', ''))   # 가격(O)
 
             #item['ta'] = response.xpath('//*[@id="btfTab"]/ul[2]/li[4]/div/table/tbody/tr[1]/td[1]').get()    # 판매자(상호/대표자)(?) - javascript
             #if response.xpath('//*[@id="btfTab"]/ul[2]/li[4]/div/table/tbody/tr[1]/td[1]').get() is None:
@@ -89,7 +92,7 @@ class CoupangSpider(scrapy.Spider):
 
             ##item['gr'] = response.css('span.rating-star-num::attr(style)').get().replace("width: ","").replace(";","")      # 평점 -> 5점 만점이 아닌 %로 나옴
             #***********************************************************************************
-            gr = re.sub(r'[^0-9.]', '', str(response.css('span.rating-star-num::attr(style)').get()))      # 평점: 정규화
+            gr = re.sub(r'[^0-9.]', '', str(response.css('span.rating-star-num::attr(style)').get()))      # 평점: 정규화 아직 완성 X
             if "100.0" in gr:
                 item['gr'] = 5.0
             elif "90.0" in gr:
@@ -113,7 +116,7 @@ class CoupangSpider(scrapy.Spider):
             else:
                 item['gr'] = 0
 
-            item['revco'] = re.sub(r'[^0-9]', '', str(response.css('span.count::text').get()))   # 리뷰개수(O)
+            item['revco'] = int(re.sub(r'[^0-9]', '', str(response.css('span.count::text').get())))   # 리뷰개수(O)
 
             ##item['dcinfo'] = response.css('span.discount-rate::text').get().replace("\n","").replace(" ","").replace("%","")   # 할인정보
             ##if item['dcinfo'] != "":
@@ -191,10 +194,10 @@ class CoupangSpider(scrapy.Spider):
             ##item['pr1qt'] = response.css('div.aos-label::text').get()   # 재고 현황 -> 개수(숫자)만 긁어오게
             #***********************************************************************
             if response.css('div.aos-label::text').get() is None:   # 재고 현황(O)
-                item['pr1qt'] = response.css('div.aos-label::text').get()
+                item['pr1qt'] = None
             else:
                 pr1qt = response.css('div.aos-label::text').get()
-                item['pr1qt'] = re.sub(r'[^0-9]', '', str(pr1qt))
+                item['pr1qt'] = int(re.sub(r'[^0-9]', '', str(pr1qt)))
 
             # item['pgco'] = page   # 전체 페이지 수: 상세페이지 url에는 정보가 없음
 
@@ -222,11 +225,11 @@ class CoupangSpider(scrapy.Spider):
             #********************************************************************************************
             fullpr = response.css('span.origin-price::text').get()   # 정가(O)
             if fullpr == "원":
-                item['fullpr'] = response.css('span.total-price > strong::text').get()
-            elif fullpr is None:
-                item['fullpr'] = response.css('div.prod-sale-price > strong::text').get()   # 중고상품일 때
+                item['fullpr'] = int(response.css('span.total-price > strong::text').get().replace(',', ''))
+            # elif fullpr is None:
+            #     item['fullpr'] = response.css('div.prod-sale-price > strong::text').get()   # 중고상품일 때
             else:
-                item['fullpr'] = fullpr.replace("원", "")
+                item['fullpr'] = int(fullpr.replace("원", "").replace(',', ''))
             
             # 쿠팡판매가, 와우할인가 나눠져 있을 때
             ##item['dcpr'] = response.css('div.prod-sale-price.instant-discount > span.total-price > strong::text').get()   # 쿠팡판매가
@@ -236,7 +239,7 @@ class CoupangSpider(scrapy.Spider):
             ##item['dcpr'] = response.css('prod-sale-price.prod-major-price > span.total-price > strong::text').get()
             #위에 '가격' 크롤링 한 css로 똑같이 가져오면 쿠팡판매가, 와우할인가 나뉘어진 상품은 쿠팡판매가가 나옴.(75)
             ##item['dcpr'] = response.css('span.total-price > strong::text').get()
-
+            
             soldout = response.css('div.oos-label::text').get()   # 품절 유무(O)
             if soldout is None:
                 item['soldout'] = soldout
