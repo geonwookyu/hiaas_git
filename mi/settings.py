@@ -112,8 +112,8 @@ HTTPCACHE_EXPIRATION_SECS = 1800
 #HTTPCACHE_STORAGE = 'scrapy.extensions.httpcache.FilesystemCacheStorage'
 
 
-
-
+# --------------------------------------LOGER CONFIG-----------------------------------------
+LOG_LEVEL = 'DEBUG'
 
 
 
@@ -122,6 +122,26 @@ COUPANG_PAGE_COUNT = 3
 COUPANG_CRAWL_DELAY = 2.0
 COUPANG_SORTER = 'scoreDesc'
 COUPANG_LISTSIZE = '72'
+
+
+
+
+
+
+
+
+
+
+#----------------------------------------------------------------------------------------------
+
+
+
+
+# --------------------------------------NAVER CONFIG-----------------------------------------
+
+
+
+
 
 
 
