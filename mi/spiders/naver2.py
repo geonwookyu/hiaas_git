@@ -88,8 +88,7 @@ class Naverspider2(scrapy.Spider):
                     item['pr1pr'] = product['lowPrice']
                     item['ta'] = product['mallName']
                     scoreInfo = product['scoreInfo']
-
-                    if isinstance(scoreInfo, int) == False:
+                    if scoreInfo is None:
                         scoreInfo = 0.0
                     item['gr'] = scoreInfo
 
