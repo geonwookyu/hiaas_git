@@ -2,62 +2,49 @@ import json
 import scrapy
 import re
 from mi.items import HiLabMIItem
+from mi.settings import KEYWORD_LIST
+from scrapy.spidermiddlewares.httperror import HttpError
+from twisted.internet.error import DNSLookupError
+from twisted.internet.error import TimeoutError, TCPTimedOutError
+import logging
+import logging.config
+from mi.spiders.logger import loggerConfig
+
+logging.config.dictConfig(loggerConfig)
+logger = logging.getLogger("coupang")
+
 
 class CoupangSpider(scrapy.Spider):
     name = "coupang2"
     marketType = "coupang"
 
     def start_requests(self):
-        # global keyword
-        # global page
-        # keyword = 'tv'
-        # listSize = '72'
-        # sorter = 'scoreDesc' # 쿠팡 랭킹 순
-        # urls=[]
-        # for page in range(1,14):
-        #     global url_page
-            
-        #     #url_page = f'https://www.coupang.com/np/search?q=tv&channel=user&component=&eventCategory=SRP&trcid=&traid=&sorter=scoreDesc&minPrice=&maxPrice=&priceRange=&filterType=&listSize=72&filter=&isPriceRange=false&brand=&offerCondition=&rating=0&page={i}&rocketAll=false&searchIndexingToken=&backgroundColor='
-        #     url_page = f'https://www.coupang.com/np/search?rocketAll=false&q={keyword}&brand=&offerCondition=&filter=&availableDeliveryFilter=&filterType=&isPriceRange=false&priceRange=&minPrice=&maxPrice=&page={page}&trcid=&traid=&filterSetByUser=true&channel=user&backgroundColor=&component=&rating=0&sorter={sorter}&listSize={listSize}'
-        #     urls.append(url_page)
-            
-        # for url in urls:
-        #     yield scrapy.Request(url=url, callback=self.parse_page)
-
         with open('coupang1.json', 'r', encoding='UTF-8') as json_file:
             json_data = json.load(json_file)
-            # logging.error(f'data = {json_data}')
-            # logging.error(f'data_type = {type(json_data)}')
             
             for url in json_data:
-                # print(url['detail_link'])
+                ad = url['ad']
+                sk = url['sk']
                 url = url['detail_link']
-                # urls.append(url)
-                # url = json_data['detail_link']
-        # for url in urls:
-                yield scrapy.Request(url=url, callback=self.parse_detail)
-
-    # def parse_page(self, response):
-    #     try :
-    #         coupang_sels = response.css('ul.search-product-list > li')
-
-    #         for coupang_sel in coupang_sels:
-    #             url = 'https://www.coupang.com' + coupang_sel.css('a.search-product-link::attr(href)').get()
-                
-    #             yield scrapy.Request(url=url, callback=self.parse_detail)
-    #     except Exception as e:
-    #         print('e: ', e)
+                logger.info('[start_requests] url conn : %s', url)
+                request = scrapy.Request(url=url, callback=self.parse_detail, errback=self.errback_httpbin)
+                request.meta['ad'] = ad
+                request.meta['sk'] = sk
+                yield request
 
     def parse_detail(self, response):
         try:
             item = HiLabMIItem()
 
-            item['mid'] = self.marketType
+            item['mid'] = self.marketType   # 마켓 타입 (ex. naver, coupang)
+
+            item['ctype'] = 1     # collection type(1:키워드, 2:카테고리)
 
             item['detail_link'] = response.url  #상세페이지 링크[O]
 
-            # item['rank'] = int(response.url.split('&rank=')[1])   # 순위[O]
             item['rank'] = int(response.url.split('&rank=')[1])   # 순위[O]
+
+            item['ad'] = response.meta.get('ad')
 
             # item['pr1ca'] = response.css('ul#breadcrumb a::text').getall()   # 카테고리 -> '쿠팡 홈'만 나옴 javascript
             ##//*[@id="breadcrumb"]/li[1]/a     카테고리 xpath
@@ -80,9 +67,15 @@ class CoupangSpider(scrapy.Spider):
 
             ##item['prco']   # 총 제품 수: 해당없음
 
-            item['pr1nm'] = response.css('h2.prod-buy-header__title::text').get()   # 제품명(O)
+            pr1nm = response.css('h2.prod-buy-header__title::text').get()   # 제품명(O)
+            item['pr1nm'] = pr1nm
+            # item['pr1nm'] = response.css('h2.prod-buy-header__title::text').get()   # 제품명(O)
 
-            item['pr1pr'] = int(response.css('span.total-price > strong::text').get().replace(',', ''))   # 가격(O)
+            pr1pr = response.css('span.total-price > strong::text').get()   # 가격(O)
+            if pr1pr is not None:
+                item['pr1pr'] = int(pr1pr.replace(',', ''))
+            else:
+                item['pr1pr'] = pr1pr
 
             #item['ta'] = response.xpath('//*[@id="btfTab"]/ul[2]/li[4]/div/table/tbody/tr[1]/td[1]').get()    # 판매자(상호/대표자)(?) - javascript
             #if response.xpath('//*[@id="btfTab"]/ul[2]/li[4]/div/table/tbody/tr[1]/td[1]').get() is None:
@@ -90,31 +83,8 @@ class CoupangSpider(scrapy.Spider):
             ##//*[@id="btfTab"]/ul[2]/li[4]/div/table/tbody/tr[1]/td[1] -> '상호/대표자'가 있을 때 xpath
             ##//*[@id="btfTab"]/ul[2]/li[4]/div/table/tbody/tr/td/text() -> '쿠팡'일 때 xpath
 
-            ##item['gr'] = response.css('span.rating-star-num::attr(style)').get().replace("width: ","").replace(";","")      # 평점 -> 5점 만점이 아닌 %로 나옴
-            #***********************************************************************************
             gr = re.sub(r'[^0-9.]', '', str(response.css('span.rating-star-num::attr(style)').get()))      # 평점: 정규화 아직 완성 X
-            if "100.0" in gr:
-                item['gr'] = 5.0
-            elif "90.0" in gr:
-                item['gr'] = 4.5
-            elif "80.0" in gr:
-                item['gr'] = 4.0
-            elif "70.0" in gr:
-                item['gr'] = 3.5
-            elif "60.0" in gr:
-                item['gr'] = 3.0
-            elif "50.0" in gr:
-                item['gr'] = 2.5
-            elif "40.0" in gr:
-                item['gr'] = 2.0
-            elif "30.0" in gr:
-                item['gr'] = 1.5
-            elif "20.0" in gr:
-                item['gr'] = 1.0
-            elif "10.0" in gr:
-                item['gr'] = 0.5
-            else:
-                item['gr'] = 0
+            item['gr'] = float(gr) / 100 * 5
 
             item['revco'] = int(re.sub(r'[^0-9]', '', str(response.css('span.count::text').get())))   # 리뷰개수(O)
 
@@ -122,25 +92,17 @@ class CoupangSpider(scrapy.Spider):
             ##if item['dcinfo'] != "":
             ##    item['dcinfo'] = response.css('span.discount-rate::text').get().replace("\n","").replace(" ","")
             #******************************************************************************************************************************
-            dcinfo = response.css('span.discount-rate::text').get()   # 할인정보(O) - 할인율(%)로 가져오고, 할인 없는 것은 ""
-            if dcinfo is None:
-                item['dcinfo'] = None
-            elif dcinfo.strip() == "%":
-                item['dcinfo'] = None
-            else:
-                item['dcinfo'] = dcinfo.strip()
+            # dcinfo = response.css('span.discount-rate::text').get()   # 할인정보: 할인율과 가져오는 정보가 동일하여 일단은 할인율을 가져오고 할인정보는 수집 보류
+            # if dcinfo is None:
+            #     item['dcinfo'] = None
+            # elif dcinfo.strip() == "%":
+            #     item['dcinfo'] = None
+            # else:
+            #     item['dcinfo'] = dcinfo.strip()
 
-            item['ts'] = response.css('div.prod-shipping-fee-message > span > em.prod-txt-bold::text').get()    # 무료배송 유무(O)
-            if item['ts'] is None:  # 무료배송 아닐 때
-                item['ts'] = response.css('div.prod-shipping-fee-message > span::text').get()
+            ts = response.css('div.prod-shipping-fee-message > span > em.prod-txt-bold::text').get()    # 무료배송 유무: boolean형으로 변환[O]
+            item['ts'] = ts == "무료배송"
 
-            ##item['ardate'] = response.css('em.prod-txt-onyx.prod-txt-green-2::text').get()    # 로켓배송 시 도착예정일자
-            ##if response.css('em.prod-txt-onyx.prod-txt-green-2::text').get() == None:
-            ##    item['ardate'] = response.css('em.prod-txt-onyx.prod-txt-font-14::text').get()    # 일반배송 시 도착예정일자
-            ##    if response.css('em.prod-txt-onyx.prod-txt-font-14::text').get() == None:
-            ##        item['ardate'] = response.css('em.prod-txt-onyx.prod-txt-bold::text').get()    # 일반배송 시 도착예정일자
-            ## '내일(화)' 같은 텍스트가 필요없음.
-            #*****************************************************************************************************************
             ardate = response.css('em.prod-txt-onyx.prod-txt-bold::text').get()    # 로켓 아니고, 도착예정일자 전화/문자로 안내(O)
             if ardate is None:
                 ardate = response.css('em.prod-txt-onyx.prod-txt-font-14::text').get()     # 로켓 아닐 때 도착예정일자(O)
@@ -162,10 +124,6 @@ class CoupangSpider(scrapy.Spider):
             else:
                 item['ardate'] = ardate
             
-            ##item['ms'] = response.css('span.ccid-txt::text').get()  # 멤버십 적용유무
-            ##if response.css('span.ccid-txt::text').get() != None:
-            ##    item['ms'] = response.css('span.ccid-txt::text').get().replace("최대 ","").replace(" 카드 즉시할인","")
-            #***********************************************************************************************
             ms_list = []
             if response.css('img.delivery-badge-img::attr(src)').get() == "//image10.coupangcdn.com/image/badges/rocket/rocket_logo.png":
                 ms_list.append("로켓배송")  # 멤버십 적용유무 -> 로켓배송(O)
@@ -191,8 +149,6 @@ class CoupangSpider(scrapy.Spider):
                     
             ##item['purchco']    # 구매횟수: 해당없음
 
-            ##item['pr1qt'] = response.css('div.aos-label::text').get()   # 재고 현황 -> 개수(숫자)만 긁어오게
-            #***********************************************************************
             if response.css('div.aos-label::text').get() is None:   # 재고 현황(O)
                 item['pr1qt'] = None
             else:
@@ -203,11 +159,12 @@ class CoupangSpider(scrapy.Spider):
 
     # ---------------------------------------------------------------------------------------------------------------------------------
 
-            # item['sk'] = keyword   # 검색 키워드: 상세페이지 url에는 정보가 없음
+            item['sk'] = response.meta.get('sk')   # 검색 키워드: 상세페이지 url에는 정보가 없음
 
     # ---------------------------------------------------------------------------------------------------------------------------------
 
-            item['pr1br'] = response.css('a.prod-brand-name::text').get()   # 브랜드(O)
+            # item['pr1br'] = response.css('a.prod-brand-name::text').get()   # 브랜드(O)
+            item['pr1br'] = pr1nm.split()[0]    # 제품명의 앞 한 단어(임시)
 
             #item['brlk'] = response.css('a.prod-brand-name::attr(href)').get() # 브랜드샵link javascript
 
@@ -218,37 +175,41 @@ class CoupangSpider(scrapy.Spider):
             #contents > div.prod-atf > div > div.prod-buy.new-oos-style.not-loyalty-member.eligible-address.without-subscribe-buy-type.DISPLAY_0.has-loyalty-exclusive-price > div.prod-option > div:nth-child(2) > div > div > button > table > tbody > tr > td:nth-child(1) > span.value
             #//*[@id="contents"]/div[1]/div/div[3]/div[10]/div[2]/div/div/button/table/tbody/tr/td[1]/span[2]
 
-            #item['dcrate'] # 할인율 -> dcinfo랑 동일
-            #할인정보와 가져오는 위치가 동일함(115)
+            dcrate = response.css('span.discount-rate::text').get()   # 할인율: % 빼고 숫자 타입으로(O)
+            if dcrate is None:
+                item['dcrate'] = None
+            elif dcrate.strip() == "%":
+                item['dcrate'] = None
+            else:
+                item['dcrate'] = int(dcrate.strip().replace('%', ''))
 
             ##item['fullpr'] = response.css('span.origin-price::text').get().replace("\n","").replace(" ","")   # 정가 -> 값 안 나오는 거 있음
             #********************************************************************************************
-            fullpr = response.css('span.origin-price::text').get()   # 정가(O)
+            fullpr = response.css('span.origin-price::text').get()   # 정가(O)  # 가격 관련 아이템들은 다시 한번 살펴봐야 할 것
             if fullpr == "원":
                 item['fullpr'] = int(response.css('span.total-price > strong::text').get().replace(',', ''))
-            # elif fullpr is None:
-            #     item['fullpr'] = response.css('div.prod-sale-price > strong::text').get()   # 중고상품일 때
             else:
                 item['fullpr'] = int(fullpr.replace("원", "").replace(',', ''))
             
-            # 쿠팡판매가, 와우할인가 나눠져 있을 때
-            ##item['dcpr'] = response.css('div.prod-sale-price.instant-discount > span.total-price > strong::text').get()   # 쿠팡판매가
-            ##item['dcpr'] = response.css('div.prod-coupon-price.prod-major-price > span.total-price > strong::text').get()   # 와우할인가
-            item['dcpr'] = response.css('span.total-price > strong::text').getall() ## 쿠팡판매가, 와우판매가 2개 다 cawling
-            # 쿠팡판매가, 와우할인가 안 나눠져 있을 때
-            ##item['dcpr'] = response.css('prod-sale-price.prod-major-price > span.total-price > strong::text').get()
-            #위에 '가격' 크롤링 한 css로 똑같이 가져오면 쿠팡판매가, 와우할인가 나뉘어진 상품은 쿠팡판매가가 나옴.(75)
-            ##item['dcpr'] = response.css('span.total-price > strong::text').get()
+            # # 할인가: 와우할인가로 가져오기
+            # # 쿠팡판매가, 와우할인가 나눠져 있을 때
+            # ##item['dcpr'] = response.css('div.prod-sale-price.instant-discount > span.total-price > strong::text').get()   # 쿠팡판매가
+            # item['dcpr'] = response.css('div.prod-coupon-price.prod-major-price > span.total-price > strong::text').get()   # 와우할인가
+            # # item['dcpr'] = response.css('span.total-price > strong::text').getall() ## 쿠팡판매가, 와우판매가 2개 다 cawling
+            # # 쿠팡판매가, 와우할인가 안 나눠져 있을 때
+            # item['dcpr'] = response.css('prod-sale-price.prod-major-price > span.total-price > strong::text').get()
+            # #위에 '가격' 크롤링 한 css로 똑같이 가져오면 쿠팡판매가, 와우할인가 나뉘어진 상품은 쿠팡판매가가 나옴.(75)
+            # ##item['dcpr'] = response.css('span.total-price > strong::text').get()
             
-            soldout = response.css('div.oos-label::text').get()   # 품절 유무(O)
-            if soldout is None:
-                item['soldout'] = soldout
+            soldout = response.css('div.oos-label::text').get()   # 품절 유무: boolean형으로 변환[O]
+            if soldout is not None:
+                item['soldout'] = soldout.strip() == "일시품절"
             else:
-                item['soldout'] = soldout.strip()
+                soldout = response.css('div.prod-not-find-known__buy__button').get()
+                item['soldout'] = soldout == "품절"
 
             #item['pr1va'] = response.css('div.prod-option__dropdown-item-title > strong::text').get()   # 제품 구매 옵션 -> 아직 못 긁어왔음 javascript
 
-            #item['msbf'] = response.css('strong.reward-final-cashback-amt::text').get() # 멤버십 혜택 -> 아직
             item['msbf'] = response.css('strong.tit-txt::text').getall() # 멤버십 혜택(카드혜택, 캐시적립혜택)
 
             ##item['prdetail'] = response.css('ul.prod-description-attribute > li.prod-attr-item::text').get()    # 제품 상세
@@ -285,4 +246,31 @@ class CoupangSpider(scrapy.Spider):
 
             yield item
         except Exception as e:
-            print('e: ', e)
+            # print('e: ', e)
+            logger.error('Error [parse_detail]: %s', e)
+
+    def errback_httpbin(self, failure):
+        # log all failures
+        logger.error(repr(failure))
+
+        # in case you want to do something special for some errors,
+        # you may need the failure's type:
+
+        if failure.check(HttpError):
+            # these exceptions come from HttpError spider middleware
+            # you can get the non-200 response
+            response = failure.value.response
+            logger.error('HttpError on %s', response.url)
+
+        elif failure.check(DNSLookupError):
+            # this is the original request
+            request = failure.request
+            logger.error('DNSLookupError on %s', request.url)
+
+        elif failure.check(TimeoutError, TCPTimedOutError):
+            request = failure.request
+            logger.error('TimeoutError on %s', request.url)
+
+
+
+            logger.error('TimeoutError on %s', request.url)
