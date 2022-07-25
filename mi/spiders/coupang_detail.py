@@ -18,7 +18,7 @@ class CoupangSpider(HiaasCommon):
     marketType = "coupang"
 
     def start_requests(self):
-        with open('coupang1.json', 'r', encoding='UTF-8') as json_file:
+        with open('coupang_link.json', 'r', encoding='UTF-8') as json_file:
             json_data = json.load(json_file)
             
             for url in json_data:
