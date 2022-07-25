@@ -2,14 +2,11 @@ import json
 import scrapy
 import re
 from mi.items import HiLabMIItem
-# from mi.settings import KEYWORD_LIST
-from scrapy.spidermiddlewares.httperror import HttpError
-from twisted.internet.error import DNSLookupError
-from twisted.internet.error import TimeoutError, TCPTimedOutError
+# from scrapy.spidermiddlewares.httperror import HttpError
+# from twisted.internet.error import DNSLookupError
+# from twisted.internet.error import TimeoutError, TCPTimedOutError
 import logging
-import logging.config
 from mi.spiders.hiaas_common import HiaasCommon
-from mi.spiders.logger import loggerConfig
 from scrapy.utils.project import get_project_settings
 
 # logging.config.dictConfig(loggerConfig)
@@ -29,7 +26,7 @@ class CoupangSpider(HiaasCommon):
                 sk = url['sk']
                 url = url['detail_link']
                 logger.info('[start_requests] url conn : %s', url)
-                request = scrapy.Request(url=url, callback=self.parse_detail, errback=self.errback_httpbin)
+                request = scrapy.Request(url=url, callback=self.parse_detail)
                 request.meta['ad'] = ad
                 request.meta['sk'] = sk
                 yield request
@@ -249,31 +246,31 @@ class CoupangSpider(HiaasCommon):
 
             yield item
         except Exception as e:
-            # print('e: ', e)
-            logger.error('Error [parse_detail]: %s', e)
+            print('e: ', e)
+            # logger.error('Error [parse_detail]: %s', e)
 
-    def errback_httpbin(self, failure):
-        # log all failures
-        logger.error(repr(failure))
+    # def errback_httpbin(self, failure):
+    #     # log all failures
+    #     logger.error(repr(failure))
 
-        # in case you want to do something special for some errors,
-        # you may need the failure's type:
+    #     # in case you want to do something special for some errors,
+    #     # you may need the failure's type:
 
-        if failure.check(HttpError):
-            # these exceptions come from HttpError spider middleware
-            # you can get the non-200 response
-            response = failure.value.response
-            logger.error('HttpError on %s', response.url)
+    #     if failure.check(HttpError):
+    #         # these exceptions come from HttpError spider middleware
+    #         # you can get the non-200 response
+    #         response = failure.value.response
+    #         logger.error('HttpError on %s', response.url)
 
-        elif failure.check(DNSLookupError):
-            # this is the original request
-            request = failure.request
-            logger.error('DNSLookupError on %s', request.url)
+    #     elif failure.check(DNSLookupError):
+    #         # this is the original request
+    #         request = failure.request
+    #         logger.error('DNSLookupError on %s', request.url)
 
-        elif failure.check(TimeoutError, TCPTimedOutError):
-            request = failure.request
-            logger.error('TimeoutError on %s', request.url)
+    #     elif failure.check(TimeoutError, TCPTimedOutError):
+    #         request = failure.request
+    #         logger.error('TimeoutError on %s', request.url)
 
 
 
-            logger.error('TimeoutError on %s', request.url)
+    #         logger.error('TimeoutError on %s', request.url)

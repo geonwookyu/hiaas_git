@@ -64,7 +64,7 @@ HTTP_POST_PIPELINE_URL = 'http://localhost'
 
 # If you want to send more items at once (and have less HTTP POST requests incoming.)
 # If True items will be send as [{key1:val1},{key1:val1}] instead of {key1:val1}
-HTTP_POST_PIPELINE_BUFFERED = True
+HTTP_POST_PIPELINE_BUFFERED = False
 HTTP_POST_PIPELINE_BUFFER_SIZE = 100
 
 IMAGES_STORE = './images'

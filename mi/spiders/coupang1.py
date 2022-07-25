@@ -1,8 +1,5 @@
 import asyncio
-from time import sleep
-import scrapy
 from playwright.async_api import async_playwright
-# from mi.settings import COUPANG_CRAWL_DELAY, COUPANG_LISTSIZE, COUPANG_PAGE_COUNT, COUPANG_SORTER, KEYWORD_LIST
 from mi.spiders.hiaas_common import HiaasCommon
 from scrapy.utils.project import get_project_settings
 
