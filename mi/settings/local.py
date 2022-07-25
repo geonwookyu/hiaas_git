@@ -10,8 +10,8 @@ LOG_LEVEL = 'DEBUG'
 
 
 # Collection configuration settings
-KEYWORD_LIST = []
-LIMIT_PAGING_COUNT = 1
+KEYWORD_LIST = ["매트리스"]
+LIMIT_PAGING_COUNT = 2
 
 
 # --------------------------------------COUPANG CONFIG-----------------------------------------
