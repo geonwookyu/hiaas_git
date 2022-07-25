@@ -4,7 +4,7 @@ from mi.spiders.hiaas_common import HiaasCommon
 from scrapy.utils.project import get_project_settings
 
 class PlaywrightSpider(HiaasCommon):
-    name = "coupang1"
+    name = "coupang_link"
     start_urls = ["data:,"]  # avoid using the default Scrapy downloader
     custom_settings = {
         'USER_AGENT' : None,

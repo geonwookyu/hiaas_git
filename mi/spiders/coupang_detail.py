@@ -14,7 +14,7 @@ logger = logging.getLogger("coupang")
 
 
 class CoupangSpider(HiaasCommon):
-    name = "coupang2"
+    name = "coupang_detail"
     marketType = "coupang"
 
     def start_requests(self):
