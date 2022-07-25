@@ -11,15 +11,14 @@ from twisted.internet.error import DNSLookupError
 from twisted.internet.error import TimeoutError, TCPTimedOutError
 from datetime import datetime
 from mi.spiders.hiaas_common import HiaasCommon
-# from mi.config.market import KEYWORD_LIST, LIMIT_PAGING_COUNT
 from mi.spiders.logger import loggerConfig
 from scrapy.utils.project import get_project_settings
 
 # logging.config.dictConfig(loggerConfig)
 logger = logging.getLogger("naver")
 
-class Naverspider2(HiaasCommon):
-    name = "naver2"                
+class Naverspider(HiaasCommon):
+    name = "naver_keyword"                
     param = {
         'pagingIndex':'1',
         'pagingSize':'80',
@@ -56,9 +55,6 @@ class Naverspider2(HiaasCommon):
     #  parse
     def parse_product(self, response):
         logger.info('[parse_product] start') 
-        print(f"Existing settings: {self.settings.attributes.keys()}")
-
-        
 
         settings = get_project_settings()
         keywordList = settings.get('KEYWORD_LIST')
@@ -245,10 +241,6 @@ class Naverspider2(HiaasCommon):
 
         elif failure.check(TimeoutError, TCPTimedOutError):
             request = failure.request
-            logger.error('TimeoutError on %s', request.url)
-
-
-
             logger.error('TimeoutError on %s', request.url)
 
 
