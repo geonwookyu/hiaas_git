@@ -2,19 +2,21 @@ import json
 import scrapy
 import re
 from mi.items import HiLabMIItem
-from mi.settings import KEYWORD_LIST
+# from mi.settings import KEYWORD_LIST
 from scrapy.spidermiddlewares.httperror import HttpError
 from twisted.internet.error import DNSLookupError
 from twisted.internet.error import TimeoutError, TCPTimedOutError
 import logging
 import logging.config
+from mi.spiders.hiaas_common import HiaasCommon
 from mi.spiders.logger import loggerConfig
+from scrapy.utils.project import get_project_settings
 
-logging.config.dictConfig(loggerConfig)
+# logging.config.dictConfig(loggerConfig)
 logger = logging.getLogger("coupang")
 
 
-class CoupangSpider(scrapy.Spider):
+class CoupangSpider(HiaasCommon):
     name = "coupang2"
     marketType = "coupang"
 
@@ -34,6 +36,7 @@ class CoupangSpider(scrapy.Spider):
 
     def parse_detail(self, response):
         try:
+
             item = HiLabMIItem()
 
             item['mid'] = self.marketType   # 마켓 타입 (ex. naver, coupang)

@@ -1,4 +1,4 @@
-# Scrapy settings for mi project
+# Scrapy settings for mmg project
 #
 # For simplicity, this file contains only settings considered important or
 # commonly used. You can find more settings consulting the documentation:
@@ -13,58 +13,44 @@ SPIDER_MODULES = ['mi.spiders']
 NEWSPIDER_MODULE = 'mi.spiders'
 
 
-# Crawl responsibly by identifying yourself (and your website) on the user-agent
-USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.77 Safari/537.36'
-
 # Obey robots.txt rules
 ROBOTSTXT_OBEY = False
+# The encoding to be used for the feed.
 FEED_EXPORT_ENCODING = 'utf-8'
 
-# Collection configuration settings
-KEYWORD_LIST = ['매트리스', '토퍼']
-LIMIT_PAGING_COUNT = 10
-
-# Configure maximum concurrent requests performed by Scrapy (default: 16)
-#CONCURRENT_REQUESTS = 32
 
 # Configure a delay for requests for the same website (default: 0)
 # See https://docs.scrapy.org/en/latest/topics/settings.html#download-delay
 # See also autothrottle settings and docs
 DOWNLOAD_DELAY = 2
-# The download delay setting will honor only one of:
-#CONCURRENT_REQUESTS_PER_DOMAIN = 16
-#CONCURRENT_REQUESTS_PER_IP = 16
+
 
 # Disable cookies (enabled by default)
 COOKIES_ENABLED = False
 
+
 # Disable Telnet Console (enabled by default)
 TELNETCONSOLE_ENABLED = False
+
 
 # Override the default request headers:
 DEFAULT_REQUEST_HEADERS = {
   'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-  'Accept-Language': 'ko',
+  'Accept-Language': 'ko,en-US;q=0.9,en;q=0.8,ja;q=0.7',
   'referer': 'https://www.google.com'
 }
 
-# Enable or disable spider middlewares
-# See https://docs.scrapy.org/en/latest/topics/spider-middleware.html
-#SPIDER_MIDDLEWARES = {
-#    'gymcoding_scrapy.middlewares.GymcodingScrapySpiderMiddleware': 543,
-#}
 
 # Enable or disable downloader middlewares
 # See https://docs.scrapy.org/en/latest/topics/downloader-middleware.html
-#DOWNLOADER_MIDDLEWARES = {
-#    'gymcoding_scrapy.middlewares.GymcodingScrapyDownloaderMiddleware': 543,
-#}
+DOWNLOADER_MIDDLEWARES = {
+   'scrapy.downloadermiddlewares.useragent.UserAgentMiddleware': None,
+   'scrapy_user_agents.middlewares.RandomUserAgentMiddleware': 400,
+}
+RANDOM_UA_SAME_OS_FAMILY = True
+RANDOM_UA_TYPE = 'tablet.chrome'
 
-# Enable or disable extensions
-# See https://docs.scrapy.org/en/latest/topics/extensions.html
-#EXTENSIONS = {
-#    'scrapy.extensions.telnet.TelnetConsole': None,
-#}
+
 
 # Configure item pipelines
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
@@ -73,22 +59,18 @@ ITEM_PIPELINES = {
 }
 
 # Url to your server, which accepts POST requests
-# HTTP_POST_PIPELINE_URL = 'http://localhost'
-HTTP_POST_PIPELINE_URL = 'http://106.252.227.100:8082'
+HTTP_POST_PIPELINE_URL = 'http://localhost'
 
-# Any custom headers you want to add, e.g. authentication
-HTTP_POST_PIPELINE_HEADERS = {
-    'Content-Type': 'text/plain; charset=UTF-8'
-}
 
 # If you want to send more items at once (and have less HTTP POST requests incoming.)
 # If True items will be send as [{key1:val1},{key1:val1}] instead of {key1:val1}
-HTTP_POST_PIPELINE_BUFFERED = False
+HTTP_POST_PIPELINE_BUFFERED = True
 HTTP_POST_PIPELINE_BUFFER_SIZE = 100
 
 IMAGES_STORE = './images'
 if not os.path.isdir(IMAGES_STORE):
         os.mkdir(IMAGES_STORE)
+
 
 # Enable and configure the AutoThrottle extension (disabled by default)
 # See https://docs.scrapy.org/en/latest/topics/autothrottle.html
@@ -103,6 +85,7 @@ if not os.path.isdir(IMAGES_STORE):
 # Enable showing throttling stats for every response received:
 #AUTOTHROTTLE_DEBUG = False
 
+
 # Enable and configure HTTP caching (disabled by default)
 # See https://docs.scrapy.org/en/latest/topics/downloader-middleware.html#httpcache-middleware-settings
 HTTPCACHE_ENABLED = True
@@ -112,44 +95,14 @@ HTTPCACHE_EXPIRATION_SECS = 1800
 #HTTPCACHE_STORAGE = 'scrapy.extensions.httpcache.FilesystemCacheStorage'
 
 
-# --------------------------------------LOGER CONFIG-----------------------------------------
+# log config
 LOG_LEVEL = 'DEBUG'
+# LOG_FORMAT = '%(levelname)s :: %(asctime)s :: %(module)s ::%(name)s\n%(message)s'
+# LOG_FILE = 'log.txt'
 
 
-
-# --------------------------------------COUPANG CONFIG-----------------------------------------
-COUPANG_PAGE_COUNT = 3
-COUPANG_CRAWL_DELAY = 2.0
-COUPANG_SORTER = 'scoreDesc'
-COUPANG_LISTSIZE = '72'
+# Collection configuration settings
+KEYWORD_LIST = []
+LIMIT_PAGING_COUNT = 1
 
 
-
-
-
-
-
-
-
-
-#----------------------------------------------------------------------------------------------
-
-
-
-
-# --------------------------------------NAVER CONFIG-----------------------------------------
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-#----------------------------------------------------------------------------------------------

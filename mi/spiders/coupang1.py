@@ -2,9 +2,11 @@ import asyncio
 from time import sleep
 import scrapy
 from playwright.async_api import async_playwright
-from mi.settings import COUPANG_CRAWL_DELAY, COUPANG_LISTSIZE, COUPANG_PAGE_COUNT, COUPANG_SORTER, KEYWORD_LIST
+# from mi.settings import COUPANG_CRAWL_DELAY, COUPANG_LISTSIZE, COUPANG_PAGE_COUNT, COUPANG_SORTER, KEYWORD_LIST
+from mi.spiders.hiaas_common import HiaasCommon
+from scrapy.utils.project import get_project_settings
 
-class PlaywrightSpider(scrapy.Spider):
+class PlaywrightSpider(HiaasCommon):
     name = "coupang1"
     start_urls = ["data:,"]  # avoid using the default Scrapy downloader
     custom_settings = {
@@ -14,6 +16,14 @@ class PlaywrightSpider(scrapy.Spider):
     }
     
     async def parse(self, response):
+
+        settings = get_project_settings()
+        KEYWORD_LIST = settings.get('KEYWORD_LIST')
+        COUPANG_CRAWL_DELAY = settings.get('COUPANG_CRAWL_DELAY')
+        COUPANG_LISTSIZE = settings.get('COUPANG_LISTSIZE')
+        COUPANG_PAGE_COUNT = settings.get('COUPANG_PAGE_COUNT')
+        COUPANG_SORTER = settings.get('COUPANG_SORTER')
+
         async with async_playwright() as pw:
             browser = await pw.firefox.launch()
             page = await browser.new_page()

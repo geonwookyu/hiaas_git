@@ -10,15 +10,16 @@ from scrapy.spidermiddlewares.httperror import HttpError
 from twisted.internet.error import DNSLookupError
 from twisted.internet.error import TimeoutError, TCPTimedOutError
 from datetime import datetime
-from mi.settings import KEYWORD_LIST, LIMIT_PAGING_COUNT
+from mi.spiders.hiaas_common import HiaasCommon
+# from mi.config.market import KEYWORD_LIST, LIMIT_PAGING_COUNT
 from mi.spiders.logger import loggerConfig
+from scrapy.utils.project import get_project_settings
 
-logging.config.dictConfig(loggerConfig)
+# logging.config.dictConfig(loggerConfig)
 logger = logging.getLogger("naver")
 
-class Naverspider2(scrapy.Spider):
-    name = "naver2"            
-    headers = {'User-Agent' : 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36'}        
+class Naverspider2(HiaasCommon):
+    name = "naver2"                
     param = {
         'pagingIndex':'1',
         'pagingSize':'80',
@@ -27,6 +28,17 @@ class Naverspider2(scrapy.Spider):
         'viewType':'list'        
     }
     marketType = "naver"
+
+    # @classmethod
+    # def from_crawler(cls, crawler):
+    #     params = {}
+    #     if crawler.settings.get('KEYWORD_LIST') and crawler.settings.get('LIMIT_PAGING_COUNT'):
+    #         params['keywordList'] = crawler.settings['KEYWORD_LIST']
+    #         params['limitPagingCount'] = crawler.settings['LIMIT_PAGING_COUNT']
+    #     ext = cls(**params)
+    #     ext.settings = crawler.settings
+        
+    #     return ext
     
 
     def start_requests(self): 
@@ -35,18 +47,24 @@ class Naverspider2(scrapy.Spider):
 
       
         logger.info('[start_requests] url conn : %s', url)
-        yield scrapy.Request(url=url, 
-                                headers=self.headers, 
-                                callback=self.parse_product,
-                                errback=self.errback_httpbin)
+        yield scrapy.Request(url=url,                                 
+                            callback=self.parse_product,
+                            errback=self.errback_httpbin)
                                 
 
 
     #  parse
     def parse_product(self, response):
-        logger.info('[parse_product] start')        
+        logger.info('[parse_product] start') 
+        print(f"Existing settings: {self.settings.attributes.keys()}")
 
-        for keyword in KEYWORD_LIST:            
+        
+
+        settings = get_project_settings()
+        keywordList = settings.get('KEYWORD_LIST')
+        limitPagingCount = settings.get('LIMIT_PAGING_COUNT')    
+
+        for keyword in keywordList :            
             logger.info('[parse_product] keyword : %s', keyword)
             response = requests.get(f'https://search.shopping.naver.com/api/search/all/?frm=NVSHATC&origQuery={keyword}&pagingIndex={self.param["pagingIndex"]}&pagingSize={self.param["pagingSize"]}&productSet={self.param["productSet"]}&query={keyword}&sort={self.param["sort"]}&viewType={self.param["viewType"]}')
             jsonFile = json.loads(response.text)
@@ -56,9 +74,9 @@ class Naverspider2(scrapy.Spider):
             totalPaging = int((searchCnt/int(self.param['pagingSize']))) +1   # 검색결과 총 페이지 개수
             
             # page index limit 설정
-            maxPagingCnt = LIMIT_PAGING_COUNT
-            if totalPaging > LIMIT_PAGING_COUNT:
-                maxPagingCnt = LIMIT_PAGING_COUNT
+            maxPagingCnt = limitPagingCount
+            if totalPaging > limitPagingCount:
+                maxPagingCnt = limitPagingCount
             else:
                 maxPagingCnt = totalPaging
 
@@ -74,35 +92,108 @@ class Naverspider2(scrapy.Spider):
                     # if "smartstore" in product['mallProductUrl']:
                         # logger.info('[parse_product] [keyword : %s] [pagingIdx : %d] [rank : %d] ', keyword, pagingidx, product['rank'])
                     item = HiLabMIItem()
+                    
+                    # 마켓 타입
                     item['mid'] = self.marketType
+
+                    #collection type
                     item['ctype'] = 1
-                    item['detail_link'] = product['mallProductUrl']
+
+                    # 제품 상세페이지 링크
+                    # item['detail_link'] = product['mallProductUrl']
+
+                    # 제품 순위
+                    if product['rank'] is None:
+                        product['rank'] = 0    
                     item['rank'] = product['rank']
+                    
+                    # 광고 노출 순위
+                    # item['ad'] = 
+
+                    # 카테고리1
+                    if product['category1Name'] is None:
+                        product['category1Name'] = ''                         
                     item['pr1ca'] = product['category1Name']
+                    # 카테고리2
+                    if product['category2Name'] is None:
+                        product['category2Name'] = ''                                              
                     item['pr2ca'] = product['category2Name']
+                    # 카테고리3
+                    if product['category2Name'] is None:
+                        product['category2Name'] = ''                     
                     item['pr3ca'] = product['category3Name']
+                    # 카테고리4
+                    if product['category4Name'] is None:
+                        product['category4Name'] = ''                         
                     item['pr4ca'] = product['category4Name']
+
+                    # 정렬기준
                     item['sb'] = self.param['sort']
+
+                    # 총 제품 수(임의)
+                    if product['keepCnt'] is None:
+                        product['keepCnt'] = 0
                     item['prco'] = product['keepCnt']
+
+                    # 제품명
+                    if product['productName'] is None:
+                        product['productName'] = ''
                     item['pr1nm'] = product['productName']
+
+                    # 가격
+                    if product['lowPrice'] is None:
+                        product['lowPrice'] = 0
                     item['pr1pr'] = product['lowPrice']
-                    item['ta'] = product['mallName']
-                    scoreInfo = product['scoreInfo']
-                    if scoreInfo is None:
-                        scoreInfo = 0.0
-                    item['gr'] = scoreInfo
 
+                    # 판매자
+                    # item['ta'] = product['mallName']
+
+                    # 평점
+                    if product['scoreInfo'] is None:                
+                        product['scoreInfo'] = 0.0
+                    item['gr'] = product['scoreInfo']
+                    
+                    # 리뷰 개수
+                    if product['reviewCount'] is None:
+                        product['reviewCount'] = 0
                     item['revco'] = product['reviewCount']
-                    # item['dcinfo'] = ''
-                    item['ts'] = bool(product['hasDeliveryFeeContent'])
-                    # item['ardate'] = ''
-                    # item['ms'] = ''
-                    # item['opo'] = ''
-                    item['purchco'] = product['purchaseCnt']
-                    item['pr1qt'] = product['keepCnt']
-                    # item['pgco'] = ''
 
+                    # 할인 정보
+                    # item['dcinfo'] = ''
+
+                    # 무료배송 유무
+                    if product['hasDeliveryFeeContent'] is None:
+                        product['hasDeliveryFeeContent'] = 0
+                    item['ts'] = bool(product['hasDeliveryFeeContent'])
+
+                    # 도착 예정일자
+                    # item['ardate'] = ''
+
+                    # 멤버십 적용유무
+                    # item['ms'] = ''
+
+                    # 다른 구매옵션
+                    # item['opo'] = ''
+
+                    # 구매횟수(임의)
+                    if product['purchaseCnt'] is None:
+                        product['purchaseCnt'] = 0
+                    item['purchco'] = product['purchaseCnt']
+
+                    # 재고 현황
+                    if product['keepCnt'] is None:
+                        product['keepCnt'] = 0
+                    item['pr1qt'] = product['keepCnt']
+                    
+                    # 전체 페이지 수
+                    item['pgco'] = totalPaging
+                    
+                    # 검색 키워드(임의)
                     item['sk'] = keyword
+
+                    # 브랜드
+                    if product['brand'] is None:
+                        product['brand'] = ''
                     item['pr1br'] = product['brand']
                     # item['brlk'] = ''
                     # item['talk'] = product['mallPcUrl']
@@ -129,7 +220,8 @@ class Naverspider2(scrapy.Spider):
                     # item['time'] = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%S.%L")
 
                     yield item
-                    sleep(0.2)
+                    sleep(0.1)
+                sleep(2)
                     
 
 
