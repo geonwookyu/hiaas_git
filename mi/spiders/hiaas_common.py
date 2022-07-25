@@ -14,6 +14,7 @@ class HiaasCommon(scrapy.Spider):
             params['CoupangListsize'] = crawler.settings['COUPANG_LISTSIZE']
             params['CoupangPageCount'] = crawler.settings['COUPANG_PAGE_COUNT']
             params['CoupangSorter'] = crawler.settings['COUPANG_SORTER']
+            params['CoupangLinkFilePath'] = crawler.settings['COUPANG_LINKFILE_PATH']
 
         ext = cls(**params)
         ext.settings = crawler.settings
