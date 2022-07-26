@@ -7,7 +7,6 @@ class PlaywrightSpider(HiaasCommon):
     name = "coupang_link"
     start_urls = ["data:,"]  # avoid using the default Scrapy downloader
     custom_settings = {
-        'USER_AGENT' : None,
         'TWISTED_REACTOR' : "twisted.internet.asyncioreactor.AsyncioSelectorReactor",
         'ITEM_PIPELINES' : None    
     }
