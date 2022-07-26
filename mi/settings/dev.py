@@ -1,7 +1,7 @@
 from .base import *
 
 # Url to your server, which accepts POST requests
-HTTP_POST_PIPELINE_URL = 'http://106.252.227.100:8082'
+HTTP_POST_PIPELINE_URL = 'http://mi-log-nginx'
 
 # log config
 LOG_LEVEL = 'ERROR'
