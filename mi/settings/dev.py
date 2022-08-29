@@ -21,3 +21,11 @@ COUPANG_CRAWL_DELAY = 2.0
 COUPANG_SORTER = 'scoreDesc'
 COUPANG_LISTSIZE = '72'
 COUPANG_LINKFILE_PATH = '/tmp/coupang_link.json'
+
+
+# --------------------------------------Naver CONFIG-----------------------------------------
+NAVER_PAGE_COUNT = 13
+NAVER_CRAWL_DELAY = 2.0
+NAVER_SORTER = 'rel'
+NAVER_LISTSIZE = '80'
+NAVER_VIEW_TYPE = 'list'
