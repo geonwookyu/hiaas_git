@@ -23,8 +23,7 @@ class NaverCombineSpider(HiaasCommon):
     start_urls = ["data:,"]  # avoid using the default Scrapy downloader
     custom_settings = {
         'TWISTED_REACTOR' : "twisted.internet.asyncioreactor.AsyncioSelectorReactor",
-        'RANDOM_UA_TYPE' : "chrome"
-        # 'ITEM_PIPELINES' : None   
+        'RANDOM_UA_TYPE' : "chrome"         
     }
 
     marketType = "naver"
@@ -51,7 +50,11 @@ class NaverCombineSpider(HiaasCommon):
                 try:                    
                     rq = requests.get(searchLink)
                     soup = bs(rq.content, 'html.parser')
-                    attr = soup.select_one('script[id="__NEXT_DATA__"]').get_text()
+                    select = soup.select_one('script[id="__NEXT_DATA__"]')
+                    if select is None:
+                        logging.log(logging.ERROR, "네이버 데이터셋 획득 실패")
+                        return None
+                    attr = select.get_text()                    
                     jsonFile = json.loads(attr)
                     productList = jsonFile['props']['pageProps']['initialState']['products']['list']
                     
