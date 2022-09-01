@@ -24,7 +24,7 @@ COUPANG_LINKFILE_PATH = '/tmp/coupang_link.json'
 
 
 # --------------------------------------Naver CONFIG-----------------------------------------
-NAVER_PAGE_COUNT = 13
+NAVER_PAGE_COUNT = 14
 NAVER_CRAWL_DELAY = 2.0
 NAVER_SORTER = 'rel'
 NAVER_LISTSIZE = '80'
