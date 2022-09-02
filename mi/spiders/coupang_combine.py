@@ -37,6 +37,7 @@ class CoupangCombineSpider(HiaasCommon):
 
                     locators = page.locator('ul.search-product-list> li > a.search-product-link')
                     count = await locators.count()
+
                     for i in range(count):
                         locator = locators.nth(i)
                         href = await locator.get_attribute('href')
@@ -50,9 +51,7 @@ class CoupangCombineSpider(HiaasCommon):
                             ad = ad,
                             sk = keyword
                         ))
-                        # yield {'detail_link': detail_link, 
-                        # 'ad': ad,
-                        # 'sk': keyword}
+
             await browser.close()
 
     def parse_detail(self, response):
@@ -60,25 +59,28 @@ class CoupangCombineSpider(HiaasCommon):
 
             item = HiLabMIItem()
 
-            item['mid'] = self.marketType   # 마켓 타입 (ex. naver, coupang)
+            # 마켓 타입 (ex. naver, coupang)
+            item['mid'] = self.marketType
 
-            item['ctype'] = 1     # collection type(1:키워드, 2:카테고리)
+            # collection type (1:키워드, 2:카테고리)
+            item['ctype'] = 1
 
-            item['detail_link'] = response.url  #상세페이지 링크[O]
+            # 상세페이지 링크
+            item['detail_link'] = response.url
 
-            item['rank'] = int(response.url.split('&rank=')[1])   # 순위[O]
+            # 순위
+            item['rank'] = int(response.url.split('&rank=')[1])
 
+            # 광고 여부
             item['ad'] = response.meta.get('ad')
 
-            # item['pr1ca'] = response.css('ul#breadcrumb a::text').getall()   # 카테고리 -> '쿠팡 홈'만 나옴 javascript
-            ##//*[@id="breadcrumb"]/li[1]/a     카테고리 xpath
-            ##//*[@id="breadcrumb"]/li[2]/a
-            ##//*[@id="breadcrumb"]/li[3]/a
-            ##//*[@id="breadcrumb"]/li[4]/a
+            ## 카테고리 -> javascript
+            # item['pr1ca'] = response.css('ul#breadcrumb a::text').getall()
             #for category in response.css('#breadcrumb > li'):
                 #item['pr2ca'] = category.css('a::text').getall()
-                
-            # if "scoreDesc" in url_page: # 정렬기준: 상세페이지 url에는 정보가 없음
+            
+            ## 정렬기준
+            # if "scoreDesc" in url_page:
             #     item['sb'] = "쿠팡 랭킹순"  
             # elif "salePriceAsc" in url_page:
             #     item['sb'] = "낮은가격순"
@@ -89,36 +91,36 @@ class CoupangCombineSpider(HiaasCommon):
             # elif "latestAsc" in url_page:
             #     item['sb'] = "최신순"
 
-            ##item['prco']   # 총 제품 수: 해당없음
+            ## 총 제품 수: 해당없음
+            #item['prco']
 
-            pr1nm = response.css('h2.prod-buy-header__title::text').get()   # 제품명(O)
+            # 제품명
+            pr1nm = response.css('h2.prod-buy-header__title::text').get()
             item['pr1nm'] = pr1nm
-            # item['pr1nm'] = response.css('h2.prod-buy-header__title::text').get()   # 제품명(O)
 
-            # pr1pr = response.css('span.total-price > strong::text').get()   # 가격(O)
-            # if pr1pr is not None:
-            #     item['pr1pr'] = int(pr1pr.replace(',', ''))
-            # else:
-            #     item['pr1pr'] = pr1pr
-            pr1pr = response.css('div.prod-coupon-price.prod-major-price > span.total-price > strong::text').get()  # 와우할인가, 즉시할인가 상품
-            if pr1pr is None:
-                item['pr1pr'] = response.css('div.prod-sale-price.prod-major-price > span.total-price > strong::text').get().replace(',', '')    # 와우할인가 아닌 상품
+            # 가격
+            pr1pr = response.css('span.total-price > strong::text').get()
+            if pr1pr is not None:
+                item['pr1pr'] = int(pr1pr.replace(',', ''))
             else:
-                item['pr1pr'] = pr1pr.replace(',', '')
-            # 쿠팡판매가, 와우할인가로 나뉘는 상품은 와우할인가로 수집
+                item['pr1pr'] = pr1pr
 
+            ## 판매자
             #item['ta'] = response.xpath('//*[@id="btfTab"]/ul[2]/li[4]/div/table/tbody/tr[1]/td[1]').get()    # 판매자(상호/대표자)(?) - javascript
             #if response.xpath('//*[@id="btfTab"]/ul[2]/li[4]/div/table/tbody/tr[1]/td[1]').get() is None:
             #    item['ta'] = response.xpath('//*[@id="btfTab"]/ul[2]/li[4]/div/table/tbody/tr/td/text()')    # 판매자(쿠팡)(?) - javascript
             ##//*[@id="btfTab"]/ul[2]/li[4]/div/table/tbody/tr[1]/td[1] -> '상호/대표자'가 있을 때 xpath
             ##//*[@id="btfTab"]/ul[2]/li[4]/div/table/tbody/tr/td/text() -> '쿠팡'일 때 xpath
 
-            gr = re.sub(r'[^0-9.]', '', str(response.css('span.rating-star-num::attr(style)').get()))      # 평점: 정규화 아직 완성 X
+            # 평점
+            gr = re.sub(r'[^0-9.]', '', str(response.css('span.rating-star-num::attr(style)').get()))
             item['gr'] = float(gr) / 100 * 5
 
-            item['revco'] = int(re.sub(r'[^0-9]', '', str(response.css('span.count::text').get())))   # 리뷰개수(O)
+            # 리뷰개수
+            item['revco'] = int(re.sub(r'[^0-9]', '', str(response.css('span.count::text').get())))
 
-            ##item['dcinfo'] = response.css('span.discount-rate::text').get().replace("\n","").replace(" ","").replace("%","")   # 할인정보
+            ## 할인정보
+            ##item['dcinfo'] = response.css('span.discount-rate::text').get().replace("\n","").replace(" ","").replace("%","")
             ##if item['dcinfo'] != "":
             ##    item['dcinfo'] = response.css('span.discount-rate::text').get().replace("\n","").replace(" ","")
             #******************************************************************************************************************************
@@ -130,16 +132,22 @@ class CoupangCombineSpider(HiaasCommon):
             # else:
             #     item['dcinfo'] = dcinfo.strip()
 
-            ts = response.css('div.prod-shipping-fee-message > span > em.prod-txt-bold::text').get()    # 무료배송 유무: boolean형으로 변환[O]
+            # 무료배송 유무
+            ts = response.css('div.prod-shipping-fee-message > span > em.prod-txt-bold::text').get()
             item['ts'] = ts == "무료배송"
 
-            ardate = response.css('em.prod-txt-onyx.prod-txt-bold::text').get()    # 로켓 아니고, 도착예정일자 전화/문자로 안내(O)
+            # 도착 예정일자
+            # 로켓 아니고, 도착예정일자 전화/문자로 안내
+            ardate = response.css('em.prod-txt-onyx.prod-txt-bold::text').get()
             if ardate is None:
-                ardate = response.css('em.prod-txt-onyx.prod-txt-font-14::text').get()     # 로켓 아닐 때 도착예정일자(O)
+                # 로켓 아닐 때 도착예정일자
+                ardate = response.css('em.prod-txt-onyx.prod-txt-font-14::text').get()     
                 if ardate is None:
-                    ardate = response.css('em.prod-txt-onyx::text').get()   # 로켓 아닐 때 도착예정일자2(O)
+                    # 로켓 아닐 때 도착예정일자2
+                    ardate = response.css('em.prod-txt-onyx::text').get()
                     if ardate is None:
-                        ardate = response.css('em.prod-txt-onyx.prod-txt-green-2::text').get()     # 로켓일 때 도착예정일자(O)
+                        # 로켓일 때 도착예정일자
+                        ardate = response.css('em.prod-txt-onyx.prod-txt-green-2::text').get()
                         re_pattern = re.compile(r'\d+')
                         ardate = '/'.join(re.findall(re_pattern, str(ardate)))
                         item['ardate'] = ardate
@@ -154,18 +162,24 @@ class CoupangCombineSpider(HiaasCommon):
             else:
                 item['ardate'] = ardate
             
+            # 멤버십 적용유무
             ms_list = []
+            # 로켓배송
             if response.css('img.delivery-badge-img::attr(src)').get() == "//image10.coupangcdn.com/image/badges/rocket/rocket_logo.png":
-                ms_list.append("로켓배송")  # 멤버십 적용유무 -> 로켓배송(O)
+                ms_list.append("로켓배송")
+            # 로켓 설치
             if response.css('img.delivery-badge-img.rocket-install-img::attr(src)').get() == "//image7.coupangcdn.com/image/badges/rocket-install/v3/aos_2/rocket_install_xhdpi.png":
-                ms_list.append("로켓설치")  # 멤버십 적용유무 -> 로켓 설치(O)
+                ms_list.append("로켓설치")
             if response.css('span.ccid-txt::text').get() is not None:
-                ms_list.append(response.css('span.ccid-txt::text').get())   # 멤버십 적용유무 -> 카드할인(O)
+                # 카드할인
+                ms_list.append(response.css('span.ccid-txt::text').get())
             if response.css('span.reward-cash-txt::text').get() is not None:
-                ms_list.append(response.css('span.reward-cash-txt::text').get().replace(' ', '').strip().replace('\n\n', ' '))   # 멤버십 적용유무 -> 캐시적립(O)
+                # 캐시적립
+                ms_list.append(response.css('span.reward-cash-txt::text').get().replace(' ', '').strip().replace('\n\n', ' '))
             item['ms'] = ms_list
 
-            item['opo'] = response.css('span.prod-offer-banner-item::text').get()   # 다른 구매옵션(O)
+            # 다른 구매옵션
+            item['opo'] = response.css('span.prod-offer-banner-item::text').get()
             opo_list = []
             if response.css('span.prod-offer-banner-item::text').get() != None:
                 tagIdx = len(response.css('span.prod-offer-banner-item'))
@@ -177,35 +191,44 @@ class CoupangCombineSpider(HiaasCommon):
                     opo_list.append(opo_str)
                 item['opo'] = "/".join(opo_list)
                     
-            ##item['purchco']    # 구매횟수: 해당없음
+            ## 구매횟수: 해당없음
+            ##item['purchco']
 
-            if response.css('div.aos-label::text').get() is None:   # 재고 현황(O)
+            # 재고 현황
+            if response.css('div.aos-label::text').get() is None:
                 item['pr1qt'] = None
             else:
                 pr1qt = response.css('div.aos-label::text').get()
                 item['pr1qt'] = int(re.sub(r'[^0-9]', '', str(pr1qt)))
 
-            # item['pgco'] = page   # 전체 페이지 수: 상세페이지 url에는 정보가 없음
+            ## 전체 페이지 수
+            # item['pgco'] = page
 
     # ---------------------------------------------------------------------------------------------------------------------------------
 
-            item['sk'] = response.meta.get('sk')   # 검색 키워드: 상세페이지 url에는 정보가 없음
+            # 검색 키워드
+            item['sk'] = response.meta.get('sk')
 
     # ---------------------------------------------------------------------------------------------------------------------------------
 
-            # item['pr1br'] = response.css('a.prod-brand-name::text').get()   # 브랜드(O)
+            # 브랜드(O)
+            # item['pr1br'] = response.css('a.prod-brand-name::text').get()
             item['pr1br'] = pr1nm.split()[0]    # 제품명의 앞 한 단어(임시)
 
-            #item['brlk'] = response.css('a.prod-brand-name::attr(href)').get() # 브랜드샵link javascript
+            # 브랜드샵link
+            #item['brlk'] = response.css('a.prod-brand-name::attr(href)').get()
 
-            #item['talk']   # 셀러샵link javascript
+            # 셀러샵link
+            #item['talk']
 
-            #item['pr1id'] = response.css('#itemBrief > div > table > tbody > tr:nth-child(1) > td:nth-child(2)::text').get()  # SKU javascript
+            # SKU
+            #item['pr1id'] = response.css('#itemBrief > div > table > tbody > tr:nth-child(1) > td:nth-child(2)::text').get()
             #item['pr1id'] = response.xpath('//*[@id="contents"]/div[1]/div/div[3]/div[10]/div/div/div/button/table/tbody/tr/td[1]/span[2]/@text').get()  # SKU
             #contents > div.prod-atf > div > div.prod-buy.new-oos-style.not-loyalty-member.eligible-address.without-subscribe-buy-type.DISPLAY_0.has-loyalty-exclusive-price > div.prod-option > div:nth-child(2) > div > div > button > table > tbody > tr > td:nth-child(1) > span.value
             #//*[@id="contents"]/div[1]/div/div[3]/div[10]/div[2]/div/div/button/table/tbody/tr/td[1]/span[2]
 
-            dcrate = response.css('span.discount-rate::text').get()   # 할인율: % 빼고 숫자 타입으로(O)
+            # 할인율
+            dcrate = response.css('span.discount-rate::text').get()
             if dcrate is None:
                 item['dcrate'] = None
             elif dcrate.strip() == "%":
@@ -213,11 +236,14 @@ class CoupangCombineSpider(HiaasCommon):
             else:
                 item['dcrate'] = int(dcrate.strip().replace('%', ''))
 
-            fullpr = response.css('span.origin-price::text').get()   # 정가(O)
+            # 정가
+            ##item['fullpr'] = response.css('span.origin-price::text').get().replace("\n","").replace(" ","")    -> 값 안 나오는 거 있음
+            #********************************************************************************************
+            fullpr = response.css('span.origin-price::text').get()   # 정가(O)  # 가격 관련 아이템들은 다시 한번 살펴봐야 할 것
             if fullpr == "원":
-                item['fullpr'] = int(response.css('div.prod-sale-price.prod-major-price > span.total-price > strong::text').get().replace(',', ''))
+                item['fullpr'] = int(response.css('span.total-price > strong::text').get().replace(',', ''))
             else:
-                item['fullpr'] = int(re.sub(r'[^0-9]', '', str(fullpr)))
+                item['fullpr'] = int(fullpr.replace("원", "").replace(',', ''))
             
             # # 할인가: 와우할인가로 가져오기
             # # 쿠팡판매가, 와우할인가 나눠져 있을 때
@@ -228,19 +254,24 @@ class CoupangCombineSpider(HiaasCommon):
             # item['dcpr'] = response.css('prod-sale-price.prod-major-price > span.total-price > strong::text').get()
             # #위에 '가격' 크롤링 한 css로 똑같이 가져오면 쿠팡판매가, 와우할인가 나뉘어진 상품은 쿠팡판매가가 나옴.(75)
             # ##item['dcpr'] = response.css('span.total-price > strong::text').get()
-
-            soldout = response.css('div.oos-label::text').get()   # 품절 유무: boolean형으로 변환[O]
+            
+            # 품절 유무
+            soldout = response.css('div.oos-label::text').get()
             if soldout is not None:
                 item['soldout'] = soldout.strip() == "일시품절"
             else:
                 soldout = response.css('div.prod-not-find-known__buy__button').get()
                 item['soldout'] = soldout == "품절"
 
-            #item['pr1va'] = response.css('div.prod-option__dropdown-item-title > strong::text').get()   # 제품 구매 옵션 -> 아직 못 긁어왔음 javascript
+            # 제품 구매 옵션
+            #item['pr1va'] = response.css('div.prod-option__dropdown-item-title > strong::text').get()
 
-            item['msbf'] = response.css('strong.tit-txt::text').getall() # 멤버십 혜택(카드혜택, 캐시적립혜택)
+            # 멤버십 혜택(ex. 카드혜택, 캐시적립혜택)
+            item['msbf'] = response.css('strong.tit-txt::text').getall()
 
-            ##item['prdetail'] = response.css('ul.prod-description-attribute > li.prod-attr-item::text').get()    # 제품 상세
+            # 제품 상세
+            item['prdetail'] = response.css('li.prod-attr-item::text').getall()
+            ##item['prdetail'] = response.css('ul.prod-description-attribute > li.prod-attr-item::text').get()
             ##prdetail_list=[]
             ###if response.css('ul.prod-description-attribute > li.prod-attr-item::text').get() != None:
             ##    tagIdx = len(response.css('ul.prod-description-attribute > li.prod-attr-item'))
@@ -248,31 +279,38 @@ class CoupangCombineSpider(HiaasCommon):
             ##        prdetail_list.append(response.css('ul.prod-description-attribute > li.prod-attr-item::text')[i].get())
             ##    item['prdetail'] = "\n".join(prdetail_list)
             #***********************************************************************
-            item['prdetail'] = response.css('li.prod-attr-item::text').getall()    # 제품 상세(O)
+            
 
     # ---------------------------------------------------------------------------------------------------------------------------------
 
-            #item['revsum'] # 리뷰 특징 요약
+            ## 리뷰 특징 요약
+            #item['revsum']
 
-            #  정렬기준 -> None으로 뜸        
+            ##  정렬기준
             #item['revsb'] = response.css('button.sdp-review__article__order__sort__best-btn sdp-review__article__order__sort__btn--active js_reviewArticleHelpfulListBtn js_reviewArticleSortBtn::text').get()
 
-            #item['reviewer'] = response.css('span.sdp-review__article__list__info__user__name js_reviewUserProfileImage::text').get()   # 작성자 -> None
+            ## 작성자
+            #item['reviewer'] = response.css('span.sdp-review__article__list__info__user__name js_reviewUserProfileImage::text').get()
 
-            #item['ingrade'] = response.css('div.sdp-review__article__list__info__product-info__star-orange js_reviewArticleRatingValue')    # 평점 -> 아직
+            ## 평점
+            #item['ingrade'] = response.css('div.sdp-review__article__list__info__product-info__star-orange js_reviewArticleRatingValue')
 
-            #item['revdate'] = response.css('div.sdp-review__article__list__info__product-info__reg-date::text').get()    # 작성 일자 -> yet
+            ## 작성 일자
+            #item['revdate'] = response.css('div.sdp-review__article__list__info__product-info__reg-date::text').get()
 
+            ## 구매품목 디테일
+            #item['purchdetail'] = response.css('div.sdp-review__article__list__info__product-info__name::text').get()
             
-            #item['purchdetail'] = response.css('div.sdp-review__article__list__info__product-info__name::text').get()    # 구매품목 디테일 -> yet
-            
-            # 리뷰 디테일 -> yet
+            ## 리뷰 디테일
             #item['revdetail'] = response.css('div.sdp-review__article__list__headline').get() + response.css('div.sdp-review__article__list__review__content js_reviewArticleContent').get()
 
-            #item['blogrev']    # 블로그 리뷰: 해당없음
-            #item['revviews']   # 리뷰 조회수: 해당없음
+            ## 블로그 리뷰: 해당없음
+            #item['blogrev']
 
+            ## 리뷰 조회수: 해당없음
+            #item['revviews']
             yield item
+            
         except Exception as e:
             print('e: ', e)
             # logger.error('Error [parse_detail]: %s', e)
@@ -302,7 +340,6 @@ class CoupangCombineSpider(HiaasCommon):
 
 
     #         logger.error('TimeoutError on %s', request.url)
-
 
 
 
