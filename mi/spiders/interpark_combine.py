@@ -1,6 +1,7 @@
 import json
 import logging
 import re
+from unittest import expectedFailure
 import scrapy
 import asyncio
 import datetime
@@ -110,8 +111,13 @@ class InterparkCombineSpider(HiaasCommon):
                         # print("이미지 : " + img)
 
                         # 가격할인정보
-                        discount = await locator.locator('//*[@class="sale"]').inner_text()
-                        # print("가격할인정보 : " + discount)
+                        if await locator.locator('//*[@class="sale"]').inner_text() == "":
+                            discount = price.strip()
+                            # print("할인 없는 원가정보 : " + discount) 
+                        else:
+                            discount = await locator.locator('//*[@class="under"]').inner_text()
+                            discount = discount.replace("원가", "").strip()
+                            # print("할인 있는 원가정보 : " + discount)
 
                         # # logging.log(logging.INFO, href)
                         # # if 'sourceType=srp_product_ads' in href:
@@ -131,7 +137,9 @@ class InterparkCombineSpider(HiaasCommon):
                         item['pr1nm'] = title
 
                         item['pr1pr'] = price
-
+                        
+                        item['fullpr'] = discount
+                        
                         item['ta'] = seller
 
                         item['pr1br'] = brand
