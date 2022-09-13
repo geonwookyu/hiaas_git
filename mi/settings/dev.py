@@ -29,3 +29,11 @@ NAVER_CRAWL_DELAY = 2.0
 NAVER_SORTER = 'rel'
 NAVER_LISTSIZE = '80'
 NAVER_VIEW_TYPE = 'list'
+
+
+# --------------------------------------INTERPARK CONFIG-----------------------------------------
+INTERPARK_KEYWORD_LIST = ["우머나이저"]
+INTERPARK_PAGE_COUNT = 14
+INTERPARK_CRAWL_DELAY = 2.0
+INTERPARK_SORTER = 'pop-rank'
+INTERPARK_LISTSIZE = '52'
