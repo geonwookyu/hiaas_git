@@ -81,16 +81,16 @@ class InterparkCombineSpider(HiaasCommon):
                         # 날짜
                         now = datetime.datetime.now()
                         today = now.strftime("%m월 %d일")
-                        print("날짜 : " + today)
+                        # print("날짜 : " + today)
                         # 오픈마켓명
                         market_name = self.marketType
-                        print("오픈마켓명 : " + market_name)
+                        # print("오픈마켓명 : " + market_name)
                         # 판매자정보(사업자 명)
                         seller = await locator.locator('//*[@class="cname"]').inner_text()
-                        print("판매자정보(사업자 명) : " + seller) 
+                        # print("판매자정보(사업자 명) : " + seller) 
                         # 상품명 (풀네임)
                         title = await locator.locator('//*[@class="name"]').inner_text()
-                        print("상품명 (풀네임) : " + title) 
+                        # print("상품명 (풀네임) : " + title) 
                         # 브랜드명
                         brand = "우머나이저" in title
                         if brand:
