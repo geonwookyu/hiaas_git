@@ -32,8 +32,6 @@ class InterparkCombineSpider(HiaasCommon):
         INTERPARKISTSIZE = settings.get('INTERPARK_LISTSIZE')
         INTERPARK_PAGE_COUNT = settings.get('INTERPARK_PAGE_COUNT')
         INTERPARK_SORTER = settings.get('INTERPARK_SORTER')
-        INTERPARK_MINPRICE = settings.get('INTERPARK_MINPRICE')
-        INTERPARK_MAXPRICE = settings.get('INTERPARK_MAXPRICE')
 
         logging.log(logging.INFO, INTERPARK_KEYWORD_LIST)
 
@@ -55,7 +53,7 @@ class InterparkCombineSpider(HiaasCommon):
             
             for keyword in INTERPARK_KEYWORD_LIST:
                 for pagenum in range(1, INTERPARK_PAGE_COUNT + 1):
-                    search_link = f'https://shopping.interpark.com/shopSearch.do?page={pagenum}&sort={INTERPARK_SORTER}&q={keyword}&rows={INTERPARKISTSIZE}&minPrice={INTERPARK_MINPRICE}&maxPrice={INTERPARK_MAXPRICE}&'
+                    search_link = f'https://shopping.interpark.com/shopSearch.do?page={pagenum}&sort={INTERPARK_SORTER}&q={keyword}&rows={INTERPARKISTSIZE}&'
                     await page.goto(search_link)
                     await asyncio.sleep(INTERPARK_CRAWL_DELAY)
 
