@@ -89,6 +89,10 @@ class InterparkCombineSpider(HiaasCommon):
                         # 판매자정보(사업자 명)
                         seller = await locator.locator('//*[@class="cname"]').inner_text()
                         # print("판매자정보(사업자 명) : " + seller) 
+                        # 상품번호 
+                        item_no = await locator.locator('//a[@class="name"]').get_attribute('data-item_no')
+                        logging.log(logging.INFO, "item_no = %s", item_no)
+
                         # 상품명 (풀네임)
                         title = await locator.locator('//*[@class="name"]').inner_text()
                         # print("상품명 (풀네임) : " + title) 
