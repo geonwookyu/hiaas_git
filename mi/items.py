@@ -50,7 +50,8 @@ class HiLabMIItem(scrapy.Item):
     # 상품정보_3 판매자는 카테고리_7과 중복됨.
     talk = scrapy.Field() # 상품정보_4 셀러 샵 link(임의)
     # 상품정보_5 제품명은 카테고리_5와 중복됨.
-    pr1id = scrapy.Field()  # 상품정보_6 SKU
+    pr1id = scrapy.Field()  # 상품정보_6 SKU1
+    pr2id = scrapy.Field()  # 상품정보_6 SKU2
     dcrate = scrapy.Field()   # 상품정보_7 할인율(임의) - discount rate
     fullpr = scrapy.Field() # 상품정보_8 정가(임의) - full price
     dcpr = scrapy.Field() # 상품정보_9 할인가(임의) - discount price
