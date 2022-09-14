@@ -140,6 +140,8 @@ class InterparkCombineSpider(HiaasCommon):
 
                         item['detail_link'] = detail_link   # 제품 상세페이지 링크
 
+                        item['pr1id'] = item_no
+
                         item['pr1nm'] = title
 
                         item['pr1pr'] = price
