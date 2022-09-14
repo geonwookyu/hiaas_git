@@ -32,6 +32,8 @@ class InterparkCombineSpider(HiaasCommon):
         INTERPARKISTSIZE = settings.get('INTERPARK_LISTSIZE')
         INTERPARK_PAGE_COUNT = settings.get('INTERPARK_PAGE_COUNT')
         INTERPARK_SORTER = settings.get('INTERPARK_SORTER')
+        INTERPARK_MINPRICE = settings.get('INTERPARK_MINPRICE')
+        INTERPARK_MAXPRICE = settings.get('INTERPARK_MAXPRICE')
 
         logging.log(logging.INFO, INTERPARK_KEYWORD_LIST)
 
@@ -53,7 +55,7 @@ class InterparkCombineSpider(HiaasCommon):
             
             for keyword in INTERPARK_KEYWORD_LIST:
                 for pagenum in range(1, INTERPARK_PAGE_COUNT + 1):
-                    search_link = f'https://shopping.interpark.com/shopSearch.do?page={pagenum}&sort={INTERPARK_SORTER}&q={keyword}&rows={INTERPARKISTSIZE}&'
+                    search_link = f'https://shopping.interpark.com/shopSearch.do?page={pagenum}&sort={INTERPARK_SORTER}&q={keyword}&rows={INTERPARKISTSIZE}&minPrice={INTERPARK_MINPRICE}&maxPrice={INTERPARK_MAXPRICE}&'
                     await page.goto(search_link)
                     await asyncio.sleep(INTERPARK_CRAWL_DELAY)
 
@@ -93,17 +95,19 @@ class InterparkCombineSpider(HiaasCommon):
                         title = await locator.locator('//*[@class="name"]').inner_text()
                         # print("상품명 (풀네임) : " + title) 
                         # 브랜드명
-                        brand = "우머나이저" in title
-                        if brand:
-                            brand = "우머나이저"
-                            logging.log(logging.INFO, "브랜드명 = %s", brand)                            
-                        else:
-                            brand = ""
-                            logging.log(logging.INFO, "브랜드명 = ")
+                        # brand = "우머나이저" in title
+                        # if brand:
+                        #     brand = "우머나이저"
+                        #     logging.log(logging.INFO, "브랜드명 = %s", brand)                            
+                        # else:
+                        #     brand = ""
+                        #     logging.log(logging.INFO, "브랜드명 = ")
+                        brand = title.split()[0]
+
                         # URL
 
                         # 판매가(쿠폰 포함)
-                        price = await locator.locator('//*[@class="number"]').inner_text()
+                        price = int((await locator.locator('//*[@class="number"]').inner_text()).replace(",","").strip())
                         # print("판매가(쿠폰 포함) : " + price)
 
                         # 이미지
@@ -112,11 +116,11 @@ class InterparkCombineSpider(HiaasCommon):
 
                         # 가격할인정보
                         if await locator.locator('//*[@class="sale"]').inner_text() == "":
-                            discount = price.strip()
+                            discount = price
                             # print("할인 없는 원가정보 : " + discount) 
                         else:
                             discount = await locator.locator('//*[@class="under"]').inner_text()
-                            discount = discount.replace("원가", "").strip()
+                            discount = int(discount.replace("원가", "").replace(",", "").strip())
                             # print("할인 있는 원가정보 : " + discount)
 
                         # # logging.log(logging.INFO, href)
