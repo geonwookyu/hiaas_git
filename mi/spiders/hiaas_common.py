@@ -1,3 +1,4 @@
+from abc import *
 import scrapy
 
 
@@ -20,3 +21,17 @@ class HiaasCommon(scrapy.Spider):
         ext.settings = crawler.settings
         
         return ext
+
+class Login(metaclass=ABCMeta):
+    
+    @abstractmethod
+    def InputID(self):
+        raise NotImplemented
+
+    @abstractmethod
+    def InputPasswd(self):
+        raise NotImplemented
+
+    @abstractmethod
+    def ClickLogInBtn(self):
+        raise NotImplemented
