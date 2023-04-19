@@ -6,9 +6,11 @@ import json
 import time
 import scrapy
 import logging
-from playwright.async_api import async_playwright
+from time import sleep
+from playwright.sync_api import sync_playwright, TimeoutError as PlaywrightTimeoutError
 from mi.spiders.hiaas_common import HiaasCommon
 from mi.items import HiLabMIItem
+from mi.spiders.naver_login import NaverLogin
 from scrapy.utils.project import get_project_settings
 import time
 import requests
@@ -21,10 +23,10 @@ from bs4 import BeautifulSoup as bs
 class NaverCombineSpider(HiaasCommon):
     name = "naver_combine"
     start_urls = ["data:,"]  # avoid using the default Scrapy downloader
-    custom_settings = {
-        'TWISTED_REACTOR' : "twisted.internet.asyncioreactor.AsyncioSelectorReactor",
-        'RANDOM_UA_TYPE' : "chrome"         
-    }
+    # custom_settings = {
+    #     'TWISTED_REACTOR' : "twisted.internet.asyncioreactor.AsyncioSelectorReactor",
+    #     'RANDOM_UA_TYPE' : "chrome"         
+    # }
 
     marketType = "naver"
     
@@ -41,120 +43,271 @@ class NaverCombineSpider(HiaasCommon):
 
         logging.log(logging.INFO, KEYWORD_LIST)
         
-        for keyword in KEYWORD_LIST:
-            for pagenum in range(1, NAVER_PAGE_COUNT+1):
-                searchLink = f'https://search.shopping.naver.com/search/all?frm=NVSHATC&origQuery={keyword}&pagingIndex={pagenum}&pagingSize={NAVER_LISTSIZE}&productSet=total&query={keyword}&sort={NAVER_SORTER}&timestamp=&viewType={NAVER_VIEW_TYPE}'
-
-                
-                # 네이버 상품 목록 리스트의 데이터셋 파싱
-                try:                    
-                    rq = requests.get(searchLink)
-                    soup = bs(rq.content, 'html.parser')
-                    select = soup.select_one('script[id="__NEXT_DATA__"]')
-                    if select is None:
-                        logging.log(logging.ERROR, "네이버 데이터셋 획득 실패")
-                        return None
-                    attr = select.get_text()                    
-                    jsonFile = json.loads(attr)
-                    productList = jsonFile['props']['pageProps']['initialState']['products']['list']
+        with sync_playwright() as pw:
+            
+            self.browser = pw.firefox.launch()
+            self.context = self.browser.new_context()
+            page = self.context.new_page() 
+            logging.log(logging.ERROR, "로그인.....")
+            
+            login = NaverLogin()
+            login.setup(page)
+            login.InputID()
+            login.InputPasswd()
+            login.ClickLogInBtn()
+            sleep(NAVER_CRAWL_DELAY)
+            logging.log(logging.ERROR, "로그인 완료.....")
+            # page.screenshot(path='naverLoginPage2.png', full_page=True)
+            
+            cookies = self.context.cookies()
+            
+            for keyword in KEYWORD_LIST:
+                logging.log(logging.ERROR, "keyword = %s", keyword)
+                self.context = self.browser.new_context()
+                for pagenum in range(1, NAVER_PAGE_COUNT+1):
                     
-                    logging.log(logging.INFO, "productListCnt = %d", len(productList))
+                    page = self.context.new_page()
+                    self.context.add_cookies(cookies)
                     
-                    for product in productList:
-                        if product['item']['purchaseConditionInfos'] is None:
-                            continue                        
+                    searchLink = f'https://search.shopping.naver.com/search/all?frm=NVSHATC&origQuery={keyword}&pagingIndex={pagenum}&pagingSize={NAVER_LISTSIZE}&productSet=total&query={keyword}&sort={NAVER_SORTER}&timestamp=&viewType={NAVER_VIEW_TYPE}'
+                    # logging.log(logging.ERROR, "test select = %s", searchLink)
+                    
+                    # 네이버 상품 목록 리스트의 데이터셋 파싱
+                    try:                    
+                        # rq = requests.get(searchLink)
+                        page.goto(searchLink)
+                        logging.log(logging.ERROR, "go page")
+                        # page.screenshot(path='naverLoginPage3.png', full_page=True)
+                        sleep(NAVER_CRAWL_DELAY)
+                        
+                        # soup = bs(rq.content, 'html.parser')
+                        
+                        # select = soup.select_one('script[id="__NEXT_DATA__"]')
+                        select = page.locator('//*[@id="__NEXT_DATA__"]').inner_text()
+                        logging.log(logging.ERROR, "get select")
+                        
+                        if select is None:
+                            logging.log(logging.ERROR, "네이버 데이터셋 획득 실패")
+                            return None
+                        # attr = select.get_text()                    
+                        attr = select
+                        jsonFile = json.loads(attr)
+                        productList = jsonFile['props']['pageProps']['initialState']['products']['list']
+                        
+                        with open('data3.json', 'w') as outfile:
+                            json.dump(jsonFile, outfile)
+                        
+                        logging.log(logging.INFO, "productListCnt = %d", len(productList))
+                        
+                        for product in productList:
+                            if product['item']['purchaseConditionInfos'] is None:
+                                continue                        
+                                
+                            item = HiLabMIItem()
                             
-                        item = HiLabMIItem()
-                        
-                        item['mid'] = self.marketType   # 마켓타입
-                        
-                        item['ctype'] = 1   # collection 타입                                            
-                        
-                        rank = product['item']['rank']  # 제품순위
-                        if rank is None:
-                            rank = 0   
-                        item['rank'] = rank                                                                
-                        # logging.log(logging.INFO, "rank = %d", rank)
-                        
-                        category1 = product['item']['category1Name']    # 카테고리1
-                        if category1 is None:
-                            category1 = ''   
-                        item['pr1ca'] = category1
-                        # logging.log(logging.INFO, "category1 = %s", category1)
-                        
-                        category2 = product['item']['category2Name']    # 카테고리2
-                        if category2 is None:
-                            category2 = ''       
-                        item['pr2ca'] = category2                                                
-                        # logging.log(logging.INFO, "category2 = %s", category2)
-                                         
-                        category3 = product['item']['category3Name']    # 카테고리3
-                        if category3 is None:
-                            category3 = ''                            
-                        item['pr3ca'] = category3                                 
-                        # logging.log(logging.INFO, "category3 = %s", category3)
-                                          
-                        category4 = product['item']['category4Name']    # 카테고리4
-                        if category4 is None:
-                            category4 = ''                            
-                        item['pr4ca'] = category4                                 
-                        # logging.log(logging.INFO, "category4 = %s", category4)
-                        
-                        if NAVER_SORTER == 'rel':   # 정렬기준
-                            sort = '랭킹'
-                        else:
-                            sort = ''
-                        item['sb'] = sort 
-                        
-                        keepCnt = product['item']['keepCnt']    # 총 제품 수
-                        if keepCnt is None:
-                            keepCnt = 0              
-                        item['prco'] = keepCnt                                          
-                        # logging.log(logging.INFO, "keepCnt = %d", keepCnt)
-                        
-                        productName = product['item']['productName']    # 제품명
-                        if productName is None:
-                            productName = ''     
-                        item['pr1nm'] = productName                                                    
-                        # logging.log(logging.INFO, "productName = %s", productName)
-                        
-                        lowPrice = product['item']['lowPrice'] # 최저가격
-                        if lowPrice is None:
-                            lowPrice = 0
-                        item['pr1pr'] = lowPrice
-                        # logging.log(logging.INFO, "lowPrice = %d", lowPrice)                                                    
-                        
-                        scoreInfo = product['item']['scoreInfo']    # 평점
-                        if scoreInfo is None:
-                            scoreInfo = 0    
-                        item['gr'] = scoreInfo
-                        # logging.log(logging.INFO, "scoreInfo = %f", scoreInfo)
-                                                
-                        reviewCount = product['item']['reviewCount']    # 리뷰 개수
-                        if reviewCount is None:
-                            reviewCount = 0               
-                        item['revco'] = reviewCount
-                        # logging.log(logging.INFO, "reviewCount = %d", reviewCount)
-                        
-                        hasDeliveryFeeContent = product['item']['hasDeliveryFeeContent']    # 무료배송유무
-                        if hasDeliveryFeeContent is None:
-                            hasDeliveryFeeContent = False
-                        else:
-                            hasDeliveryFeeContent = True  
-                        item['ts'] = hasDeliveryFeeContent
-                        # logging.log(logging.INFO, "hasDeliveryFeeContent = %d", hasDeliveryFeeContent)
+                            item['mid'] = self.marketType   # 마켓타입
+                            
+                            item['ctype'] = 1   # collection 타입                                            
+                            
+                            rank = product['item']['rank']  # 제품순위
+                            if rank is None:
+                                rank = 0   
+                            item['rank'] = rank                                                                
+                            # logging.log(logging.INFO, "rank = %d", rank)
+                            
+                            category1 = product['item']['category1Name']    # 카테고리1
+                            if category1 is None:
+                                category1 = ''   
+                            item['pr1ca'] = category1
+                            # logging.log(logging.INFO, "category1 = %s", category1)
+                            
+                            category2 = product['item']['category2Name']    # 카테고리2
+                            if category2 is None:
+                                category2 = ''       
+                            item['pr2ca'] = category2                                                
+                            # logging.log(logging.INFO, "category2 = %s", category2)
                                             
-                        brand = reviewCount = product['item']['brand']  # 브랜드
-                        if brand is None:
-                            brand = ''
-                        # logging.log(logging.INFO, "brand = %s", brand)  
-                        item['pr1br'] = brand
-                        
-                        item['sk'] = keyword    # 검색키워드
-
-                        yield item
-                except Exception as e:
-                    logging.log(logging.ERROR, e)
+                            category3 = product['item']['category3Name']    # 카테고리3
+                            if category3 is None:
+                                category3 = ''                            
+                            item['pr3ca'] = category3                                 
+                            # logging.log(logging.INFO, "category3 = %s", category3)
+                                            
+                            category4 = product['item']['category4Name']    # 카테고리4
+                            if category4 is None:
+                                category4 = ''                            
+                            item['pr4ca'] = category4                                 
+                            # logging.log(logging.INFO, "category4 = %s", category4)
+                            
+                            if NAVER_SORTER == 'rel':   # 정렬기준
+                                sort = '랭킹'
+                            else:
+                                sort = ''
+                            item['sb'] = sort 
+                            
+                            keepCnt = product['item']['keepCnt']    # 총 제품 수
+                            if keepCnt is None:
+                                keepCnt = 0              
+                            item['prco'] = keepCnt                                          
+                            # logging.log(logging.INFO, "keepCnt = %d", keepCnt)
+                            
+                            productName = product['item']['productName']    # 제품명
+                            if productName is None:
+                                productName = ''     
+                            item['pr1nm'] = productName                                                    
+                            # logging.log(logging.INFO, "productName = %s", productName)
+                            
+                            lowPrice = product['item']['lowPrice'] # 최저가격
+                            if lowPrice is None:
+                                lowPrice = 0
+                            item['pr1pr'] = lowPrice
+                            # logging.log(logging.INFO, "lowPrice = %d", lowPrice)                                                    
+                            
+                            scoreInfo = product['item']['scoreInfo']    # 평점
+                            if scoreInfo is None:
+                                scoreInfo = 0    
+                            item['gr'] = scoreInfo
+                            # logging.log(logging.INFO, "scoreInfo = %f", scoreInfo)
+                                                    
+                            reviewCount = product['item']['reviewCount']    # 리뷰 개수
+                            if reviewCount is None:
+                                reviewCount = 0               
+                            item['revco'] = reviewCount
+                            # logging.log(logging.INFO, "reviewCount = %d", reviewCount)
+                            
+                            hasDeliveryFeeContent = product['item']['hasDeliveryFeeContent']    # 무료배송유무
+                            if hasDeliveryFeeContent is None:
+                                hasDeliveryFeeContent = False
+                            else:
+                                hasDeliveryFeeContent = True  
+                            item['ts'] = hasDeliveryFeeContent
+                            # logging.log(logging.INFO, "hasDeliveryFeeContent = %d", hasDeliveryFeeContent)
+                                                
+                            brand = reviewCount = product['item']['brand']  # 브랜드
+                            if brand is None:
+                                brand = ''
+                            # logging.log(logging.INFO, "brand = %s", brand)  
+                            item['pr1br'] = brand
+                            
+                            item['sk'] = keyword    # 검색키워드
+                            
+                            # sw add
+                            crUrl = product['item']['crUrl']
+                            if crUrl is None:
+                                crUrl = ''
+                            item['detail_link'] = crUrl
+                            
+                            mallName = product['item']['mallName']
+                            if mallName == '':
+                                mallName = product['item']['lowMallList'][0]['name']
+                            item['ta'] = mallName
+                            
+                            product2Name = product['item']['productName'].replace(' ', '')    # 제품명
+                            if keyword == KEYWORD_LIST[0]:
+                                if ('오메가3' in product2Name) or ('오메가-3' in product2Name):
+                                    pr2nm = '오메가3'
+                                elif ('초록홍합' in product2Name) or ('초록입홍합' in product2Name):
+                                    pr2nm = '초록홍합'
+                                elif ('쏘팔메토' in product2Name) or ('소팔메토' in product2Name):
+                                    pr2nm = '쏘팔메토'
+                                else:
+                                    pr2nm = None
+                            elif keyword == KEYWORD_LIST[1]:           
+                                if ('우머나이저' in product2Name and '리버티' in product2Name) or ('우머나이저' in product2Name and 'liberty' in product2Name) or ('womanizer' in product2Name and '리버티' in product2Name) or ('womanizer' in product2Name and 'liberty' in product2Name):
+                                    pr2nm = '리버티'
+                                elif ('우머나이저' in product2Name and '스탈렛' in product2Name) or ('우머나이저' in product2Name and 'starlet' in product2Name) or ('womanizer' in product2Name and '스탈렛' in product2Name) or ('womanizer' in product2Name and 'starlet' in product2Name):
+                                    if ('스탈렛3' in product2Name) or ('starlet3' in product2Name):
+                                        pr2nm = '스탈렛3'
+                                    else: pr2nm = '스탈렛'
+                                elif ('우머나이저' in product2Name and '듀오' in product2Name) or ('우머나이저' in product2Name and 'duo' in product2Name) or ('womanizer' in product2Name and '듀오' in product2Name) or ('womanizer' in product2Name and 'duo' in product2Name):
+                                    pr2nm = '듀오'
+                                elif ('우머나이저' in product2Name and '클래식' in product2Name) or ('우머나이저' in product2Name and 'classic' in product2Name) or ('womanizer' in product2Name and '클래식' in product2Name) or ('womanizer' in product2Name and 'classic' in product2Name):
+                                    if ('클래식2' in product2Name) or ('classic2' in product2Name) or ('뉴클래식' in product2Name) or ('뉴classic' in product2Name) or ('new클래식' in product2Name) or ('newclassic' in product2Name):
+                                        pr2nm = '클래식2'
+                                    else: pr2nm = '클래식'
+                                elif ('우머나이저' in product2Name and '프리미엄' in product2Name) or ('우머나이저' in product2Name and 'premium' in product2Name) or ('womanizer' in product2Name and '프리미엄' in product2Name) or ('womanizer' in product2Name and 'premium' in product2Name):
+                                    if ('뉴프리미엄' in product2Name) or ('new프리미엄' in product2Name) or ('newpremium' in product2Name) or ('프리미엄2' in product2Name) or ('premium2' in product2Name):
+                                        pr2nm = '프리미엄2'
+                                    else: pr2nm = '프리미엄'
+                                else:
+                                    pr2nm = None
+                            elif keyword == KEYWORD_LIST[2]:    
+                                if ('퓨어젤' in product2Name and '비건' in product2Name) or ('퓨어젤' in product2Name and 'vegan' in product2Name):
+                                    pr2nm = '퓨어 우먼 비건'
+                                elif ('퓨어젤' in product2Name and '누드' in product2Name) or ('퓨어젤' in product2Name and 'nude' in product2Name):
+                                    pr2nm = '퓨어 우먼 누드'
+                                elif ('퓨어젤' in product2Name and '소프트' in product2Name) or ('퓨어젤' in product2Name and 'soft' in product2Name):
+                                    pr2nm = '퓨어 우먼 소프트'
+                                else:
+                                    pr2nm = None    
+                            elif keyword == KEYWORD_LIST[3]:        
+                                if ('아크웨이브' in product2Name and '이온' in product2Name) or ('아크웨이브' in product2Name and 'ion' in product2Name) or ('arcwave' in product2Name and '이온' in product2Name) or ('arcwave' in product2Name and 'ion' in product2Name):
+                                    pr2nm = '이온'
+                                elif ('아크웨이브' in product2Name and '보이' in product2Name) or ('아크웨이브' in product2Name and 'voy' in product2Name) or ('arcwave' in product2Name and '보이' in product2Name) or ('arcwave' in product2Name and 'voy' in product2Name):
+                                    pr2nm = '보이' 
+                                else:
+                                    pr2nm = None   
+                            elif keyword == KEYWORD_LIST[4]:
+                                if ('롬프' in product2Name and '비트' in product2Name) or ('롬프' in product2Name and 'beat' in product2Name) or ('romp' in product2Name and '비트' in product2Name) or ('romp' in product2Name and 'beat' in product2Name):
+                                    pr2nm = '비트'
+                                elif ('롬프' in product2Name and '스위치' in product2Name) or ('롬프' in product2Name and 'switch' in product2Name) or ('romp' in product2Name and '스위치' in product2Name) or ('romp' in product2Name and 'switch' in product2Name):
+                                    pr2nm = '스위치'
+                                elif ('롬프' in product2Name and '쥬크' in product2Name) or ('롬프' in product2Name and '주크' in product2Name) or ('롬프' in product2Name and 'juke' in product2Name) or ('romp' in product2Name and '쥬크' in product2Name) or ('romp' in product2Name and '주크' in product2Name) or ('romp' in product2Name and 'juke' in product2Name):
+                                    pr2nm = '쥬크'
+                                elif ('롬프' in product2Name and '프리' in product2Name) or ('롬프' in product2Name and 'free' in product2Name) or ('romp' in product2Name and '프리' in product2Name) or ('romp' in product2Name and 'free' in product2Name):
+                                    pr2nm = '프리'
+                                elif ('롬프' in product2Name and '웨이브' in product2Name) or ('롬프' in product2Name and 'wave' in product2Name) or ('romp' in product2Name and '웨이브' in product2Name) or ('romp' in product2Name and 'wave' in product2Name):
+                                    pr2nm = '웨이브'
+                                elif ('롬프' in product2Name and '재즈' in product2Name) or ('롬프' in product2Name and 'jazz' in product2Name) or ('romp' in product2Name and '재즈' in product2Name) or ('romp' in product2Name and 'jazz' in product2Name):
+                                    pr2nm = '재즈'
+                                elif ('롬프' in product2Name and '샤인' in product2Name) or ('롬프' in product2Name and 'shine' in product2Name) or ('romp' in product2Name and '샤인' in product2Name) or ('romp' in product2Name and 'shine' in product2Name):
+                                    pr2nm = '샤인'
+                                elif ('롬프' in product2Name and '하이프' in product2Name) or ('롬프' in product2Name and 'hype' in product2Name) or ('romp' in product2Name and '하이프' in product2Name) or ('romp' in product2Name and 'hype' in product2Name):
+                                    pr2nm = '하이프'
+                                elif ('롬프' in product2Name and '플립' in product2Name) or ('롬프' in product2Name and 'flip' in product2Name) or ('romp' in product2Name and '플립' in product2Name) or ('romp' in product2Name and 'flip' in product2Name):
+                                    pr2nm = '플립'
+                                else:
+                                    pr2nm = None
+                            elif keyword == KEYWORD_LIST[5]:
+                                if ('위바이브' in product2Name and '디토' in product2Name) or ('위바이브' in product2Name and 'ditto' in product2Name) or ('wevibe' in product2Name and '디토' in product2Name) or ('wevibe' in product2Name and 'ditto' in product2Name) or ('we-vibe' in product2Name and '디토' in product2Name) or ('we-vibe' in product2Name and 'ditto' in product2Name):
+                                    pr2nm = '디토'
+                                elif ('위바이브' in product2Name and '멜트' in product2Name) or ('위바이브' in product2Name and 'melt' in product2Name) or ('wevibe' in product2Name and '멜트' in product2Name) or ('wevibe' in product2Name and 'melt' in product2Name) or ('we-vibe' in product2Name and '멜트' in product2Name) or ('we-vibe' in product2Name and 'melt' in product2Name):
+                                    pr2nm = '멜트'
+                                elif ('위바이브' in product2Name and '자이브' in product2Name) or ('위바이브' in product2Name and 'jive' in product2Name) or ('wevibe' in product2Name and '자이브' in product2Name) or ('wevibe' in product2Name and 'jive' in product2Name) or ('we-vibe' in product2Name and '자이브' in product2Name) or ('we-vibe' in product2Name and 'jive' in product2Name):
+                                    pr2nm = '자이브'
+                                elif ('위바이브' in product2Name and '노바2' in product2Name) or ('위바이브' in product2Name and 'nova2' in product2Name) or ('wevibe' in product2Name and '노바2' in product2Name) or ('wevibe' in product2Name and 'nova2' in product2Name) or ('we-vibe' in product2Name and '노바2' in product2Name) or ('we-vibe' in product2Name and 'nova2' in product2Name):
+                                    pr2nm = '노바2'
+                                elif ('위바이브' in product2Name and '본드' in product2Name) or ('위바이브' in product2Name and 'bond' in product2Name) or ('wevibe' in product2Name and '본드' in product2Name) or ('wevibe' in product2Name and 'bond' in product2Name) or ('we-vibe' in product2Name and '본드' in product2Name) or ('we-vibe' in product2Name and 'bond' in product2Name):
+                                    pr2nm = '본드'
+                                elif ('위바이브' in product2Name and '피봇' in product2Name) or ('위바이브' in product2Name and 'pivot' in product2Name) or ('wevibe' in product2Name and '피봇' in product2Name) or ('wevibe' in product2Name and 'pivot' in product2Name) or ('we-vibe' in product2Name and '피봇' in product2Name) or ('we-vibe' in product2Name and 'pivot' in product2Name):
+                                    pr2nm = '피봇'
+                                elif ('위바이브' in product2Name and '터치엑스' in product2Name) or ('위바이브' in product2Name and '터치x' in product2Name) or ('위바이브' in product2Name and 'touch엑스' in product2Name) or ('위바이브' in product2Name and 'touchx' in product2Name) or ('wevibe' in product2Name and '터치엑스' in product2Name) or ('wevibe' in product2Name and '터치x' in product2Name) or ('wevibe' in product2Name and 'touch엑스' in product2Name) or ('wevibe' in product2Name and 'touchx' in product2Name) or ('we-vibe' in product2Name and '터치엑스' in product2Name) or ('we-vibe' in product2Name and '터치x' in product2Name) or ('we-vibe' in product2Name and 'touch엑스' in product2Name) or ('we-vibe' in product2Name and 'touchx' in product2Name):
+                                    pr2nm = '터치엑스'
+                                elif ('위바이브' in product2Name and '탱고엑스' in product2Name) or ('위바이브' in product2Name and '탱고x' in product2Name) or ('위바이브' in product2Name and 'tango엑스' in product2Name) or ('위바이브' in product2Name and 'tangox' in product2Name) or ('wevibe' in product2Name and '탱고엑스' in product2Name) or ('wevibe' in product2Name and '탱고x' in product2Name) or ('wevibe' in product2Name and 'tango엑스' in product2Name) or ('wevibe' in product2Name and 'tangox' in product2Name) or ('we-vibe' in product2Name and '탱고엑스' in product2Name) or ('we-vibe' in product2Name and '탱고x' in product2Name) or ('we-vibe' in product2Name and 'tango엑스' in product2Name) or ('we-vibe' in product2Name and 'tangox' in product2Name):
+                                    pr2nm = '탱고엑스'
+                                elif ('위바이브' in product2Name and '스페셜에디션' in product2Name) or ('위바이브' in product2Name and '스페셜edition' in product2Name) or ('위바이브' in product2Name and 'special에디션' in product2Name) or ('위바이브' in product2Name and 'specialedition' in product2Name) or ('wevibe' in product2Name and '스페셜에디션' in product2Name) or ('wevibe' in product2Name and '스페셜edition' in product2Name) or ('wevibe' in product2Name and 'special에디션' in product2Name) or ('wevibe' in product2Name and 'specialedition' in product2Name) or ('we-vibe' in product2Name and '스페셜에디션' in product2Name) or ('we-vibe' in product2Name and '스페셜edition' in product2Name) or ('we-vibe' in product2Name and 'special에디션' in product2Name) or ('we-vibe' in product2Name and 'specialedition' in product2Name):
+                                    pr2nm = '스페셜에디션'
+                                elif ('위바이브' in product2Name and '벡터' in product2Name) or ('위바이브' in product2Name and 'vector' in product2Name) or ('wevibe' in product2Name and '벡터' in product2Name) or ('wevibe' in product2Name and 'vector' in product2Name) or ('we-vibe' in product2Name and '벡터' in product2Name) or ('we-vibe' in product2Name and 'vector' in product2Name):
+                                    pr2nm = '벡터'
+                                elif ('위바이브' in product2Name and '버지' in product2Name) or ('위바이브' in product2Name and 'verge' in product2Name) or ('wevibe' in product2Name and '버지' in product2Name) or ('wevibe' in product2Name and 'verge' in product2Name) or ('we-vibe' in product2Name and '버지' in product2Name) or ('we-vibe' in product2Name and 'verge' in product2Name):
+                                    pr2nm = '버지'
+                                elif ('위바이브' in product2Name and '목시' in product2Name) or ('위바이브' in product2Name and 'moxie' in product2Name) or ('wevibe' in product2Name and '목시' in product2Name) or ('wevibe' in product2Name and 'moxie' in product2Name) or ('we-vibe' in product2Name and '목시' in product2Name) or ('we-vibe' in product2Name and 'moxie' in product2Name):
+                                    pr2nm = '목시'
+                                else:
+                                    pr2nm = None
+                            else:
+                                pr2nm = ''
+                            
+                            item['pr2nm'] = pr2nm
+                            
+                            yield item
+                            
+                    except Exception as e:
+                        logging.log(logging.ERROR, e)
+                    
+                self.context.close()
+            
+            self.browser.close()
                     
                 
                     

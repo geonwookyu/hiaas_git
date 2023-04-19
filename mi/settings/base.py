@@ -12,7 +12,6 @@ BOT_NAME = 'mi'
 SPIDER_MODULES = ['mi.spiders']
 NEWSPIDER_MODULE = 'mi.spiders'
 
-
 # Obey robots.txt rules
 ROBOTSTXT_OBEY = False
 # The encoding to be used for the feed.
@@ -104,5 +103,3 @@ LOG_LEVEL = 'DEBUG'
 # Collection configuration settings
 KEYWORD_LIST = []
 LIMIT_PAGING_COUNT = 1
-
-
