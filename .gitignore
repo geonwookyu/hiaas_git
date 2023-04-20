@@ -253,8 +253,5 @@ $RECYCLE.BIN/
 *.csv
 *.json
 
-# coupang test .py
-testcoupang1.py
-testcoupang2.py
-
-settings/local.py
+# Coupang Login Cookie
+!CoupangAutoLoginCookie.json
