@@ -56,11 +56,27 @@ class GmarketCombineSpider(HiaasCommon):
                         tmp = locator.locator('//*[@class="text__item"]').inner_text().lower().replace(' ', '')
                         print("상품명 (풀네임) : " + tmp)
                         if keyword == GMARKET_KEYWORD_LIST[0]:
-                            if ('네이쳐스탑' in tmp) or ('네이처스탑' in tmp) or ('naturestop' in tmp):
+                            if ('우머나이저' in tmp) or ('womanizer' in tmp):
                                 brandYn = True
                             else: brandYn = False
                         elif keyword == GMARKET_KEYWORD_LIST[1]:
-                            if ('노트북' in tmp):
+                            if ('퓨어젤' in tmp):
+                                brandYn = True
+                            else: brandYn = False
+                        elif keyword == GMARKET_KEYWORD_LIST[2]:
+                            if ('아크웨이브' in tmp) or ('arcwave' in tmp):
+                                brandYn = True
+                            else: brandYn = False
+                        elif keyword == GMARKET_KEYWORD_LIST[3]:
+                            if ('롬프' in tmp) or ('romp' in tmp):
+                                brandYn = True
+                            else: brandYn = False
+                        elif keyword == GMARKET_KEYWORD_LIST[4]:
+                            if ('위바이브' in tmp) or ('wevibe' in tmp) or ('we-vibe' in tmp):
+                                brandYn = True
+                            else: brandYn = False
+                        elif keyword == GMARKET_KEYWORD_LIST[5]:
+                            if ('네이쳐스탑' in tmp) or ('네이처스탑' in tmp) or ('naturestop' in tmp):
                                 brandYn = True
                             else: brandYn = False
                             
@@ -97,8 +113,152 @@ class GmarketCombineSpider(HiaasCommon):
                             title_tmp = title.lower().replace(' ', '')
                             
                             # 브랜드명
-                            
                             if keyword == GMARKET_KEYWORD_LIST[0]:
+                                if ('프리미엄에코' in title_tmp) or ('프리미엄eco' in title_tmp) or ('premium에코' in title_tmp) or ('premiumeco' in title_tmp) or ('w500' in title_tmp) or ('pro40' in title_tmp):    continue
+
+                                if ('우머나이저' in title_tmp and '리버티' in title_tmp) or ('우머나이저' in title_tmp and 'liberty' in title_tmp) or ('womanizer' in title_tmp and '리버티' in title_tmp) or ('womanizer' in title_tmp and 'liberty' in title_tmp):
+                                    pr2nm = '리버티'
+                                elif ('우머나이저' in title_tmp and '스탈렛' in title_tmp) or ('우머나이저' in title_tmp and 'starlet' in title_tmp) or ('womanizer' in title_tmp and '스탈렛' in title_tmp) or ('womanizer' in title_tmp and 'starlet' in title_tmp):
+                                    if ('스탈렛3' in title_tmp) or ('starlet3' in title_tmp):
+                                        pr2nm = '스탈렛3'
+                                    else: pr2nm = '스탈렛'
+                                elif ('우머나이저' in title_tmp and '듀오' in title_tmp) or ('우머나이저' in title_tmp and 'duo' in title_tmp) or ('womanizer' in title_tmp and '듀오' in title_tmp) or ('womanizer' in title_tmp and 'duo' in title_tmp):
+                                    pr2nm = '듀오'
+                                elif ('우머나이저' in title_tmp and '클래식' in title_tmp) or ('우머나이저' in title_tmp and 'classic' in title_tmp) or ('womanizer' in title_tmp and '클래식' in title_tmp) or ('womanizer' in title_tmp and 'classic' in title_tmp):
+                                    if ('클래식2' in title_tmp) or ('classic2' in title_tmp) or ('뉴클래식' in title_tmp) or ('뉴classic' in title_tmp) or ('new클래식' in title_tmp) or ('newclassic' in title_tmp):
+                                        pr2nm = '클래식2'
+                                    else: pr2nm = '클래식'
+                                elif ('우머나이저' in title_tmp and '프리미엄' in title_tmp) or ('우머나이저' in title_tmp and 'premium' in title_tmp) or ('womanizer' in title_tmp and '프리미엄' in title_tmp) or ('womanizer' in title_tmp and 'premium' in title_tmp):
+                                    if ('뉴프리미엄' in title_tmp) or ('new프리미엄' in title_tmp) or ('newpremium' in title_tmp) or ('프리미엄2' in title_tmp) or ('premium2' in title_tmp):
+                                        pr2nm = '프리미엄2'
+                                    else: pr2nm = '프리미엄'
+                                else:   continue
+                                
+                            elif keyword == GMARKET_KEYWORD_LIST[1]:
+                                if ('퓨어젤' in title_tmp and '비건' in title_tmp) or ('퓨어젤' in title_tmp and 'vegan' in title_tmp):
+
+                                    pr2nm = '퓨어 우먼 비건'
+
+                                elif ('퓨어젤' in title_tmp and '누드' in title_tmp) or ('퓨어젤' in title_tmp and 'nude' in title_tmp):
+
+                                    pr2nm = '퓨어 우먼 누드'
+
+                                elif ('퓨어젤' in title_tmp and '소프트' in title_tmp) or ('퓨어젤' in title_tmp and 'soft' in title_tmp):
+
+                                    pr2nm = '퓨어 우먼 소프트'
+
+                                else:
+
+                                    pr2nm = None
+                            
+                            elif keyword == GMARKET_KEYWORD_LIST[2]:
+                                if ('아크웨이브' in title_tmp and '이온' in title_tmp) or ('아크웨이브' in title_tmp and 'ion' in title_tmp) or ('arcwave' in title_tmp and '이온' in title_tmp) or ('arcwave' in title_tmp and 'ion' in title_tmp):
+
+                                    pr2nm = '이온'
+
+                                elif ('아크웨이브' in title_tmp and '보이' in title_tmp) or ('아크웨이브' in title_tmp and 'voy' in title_tmp) or ('arcwave' in title_tmp and '보이' in title_tmp) or ('arcwave' in title_tmp and 'voy' in title_tmp):
+
+                                    pr2nm = '보이'
+
+                                else:
+
+                                    pr2nm = None
+
+                            elif keyword == GMARKET_KEYWORD_LIST[3]:
+                                if ('롬프' in title_tmp and '비트' in title_tmp) or ('롬프' in title_tmp and 'beat' in title_tmp) or ('romp' in title_tmp and '비트' in title_tmp) or ('romp' in title_tmp and 'beat' in title_tmp):
+
+                                    pr2nm = '비트'
+
+                                elif ('롬프' in title_tmp and '스위치' in title_tmp) or ('롬프' in title_tmp and 'switch' in title_tmp) or ('romp' in title_tmp and '스위치' in title_tmp) or ('romp' in title_tmp and 'switch' in title_tmp):
+
+                                    pr2nm = '스위치'
+
+                                elif ('롬프' in title_tmp and '쥬크' in title_tmp) or ('롬프' in title_tmp and '주크' in title_tmp) or ('롬프' in title_tmp and 'juke' in title_tmp) or ('romp' in title_tmp and '쥬크' in title_tmp) or ('romp' in title_tmp and '주크' in title_tmp) or ('romp' in title_tmp and 'juke' in title_tmp):
+
+                                    pr2nm = '쥬크'
+
+                                elif ('롬프' in title_tmp and '프리' in title_tmp) or ('롬프' in title_tmp and 'free' in title_tmp) or ('romp' in title_tmp and '프리' in title_tmp) or ('romp' in title_tmp and 'free' in title_tmp):
+
+                                    pr2nm = '프리'
+
+                                elif ('롬프' in title_tmp and '웨이브' in title_tmp) or ('롬프' in title_tmp and 'wave' in title_tmp) or ('romp' in title_tmp and '웨이브' in title_tmp) or ('romp' in title_tmp and 'wave' in title_tmp):
+
+                                    pr2nm = '웨이브'
+
+                                elif ('롬프' in title_tmp and '재즈' in title_tmp) or ('롬프' in title_tmp and 'jazz' in title_tmp) or ('romp' in title_tmp and '재즈' in title_tmp) or ('romp' in title_tmp and 'jazz' in title_tmp):
+
+                                    pr2nm = '재즈'
+
+                                elif ('롬프' in title_tmp and '샤인' in title_tmp) or ('롬프' in title_tmp and 'shine' in title_tmp) or ('romp' in title_tmp and '샤인' in title_tmp) or ('romp' in title_tmp and 'shine' in title_tmp):
+
+                                    pr2nm = '샤인'
+
+                                elif ('롬프' in title_tmp and '하이프' in title_tmp) or ('롬프' in title_tmp and 'hype' in title_tmp) or ('romp' in title_tmp and '하이프' in title_tmp) or ('romp' in title_tmp and 'hype' in title_tmp):
+
+                                    pr2nm = '하이프'
+
+                                elif ('롬프' in title_tmp and '플립' in title_tmp) or ('롬프' in title_tmp and 'flip' in title_tmp) or ('romp' in title_tmp and '플립' in title_tmp) or ('romp' in title_tmp and 'flip' in title_tmp):
+
+                                    pr2nm = '플립'
+
+                                else:
+
+                                    pr2nm = None
+
+                            elif keyword == GMARKET_KEYWORD_LIST[4]:
+                                if ('위바이브' in title_tmp and '디토' in title_tmp) or ('위바이브' in title_tmp and 'ditto' in title_tmp) or ('wevibe' in title_tmp and '디토' in title_tmp) or ('wevibe' in title_tmp and 'ditto' in title_tmp) or ('we-vibe' in title_tmp and '디토' in title_tmp) or ('we-vibe' in title_tmp and 'ditto' in title_tmp):
+
+                                    pr2nm = '디토'
+
+                                elif ('위바이브' in title_tmp and '멜트' in title_tmp) or ('위바이브' in title_tmp and 'melt' in title_tmp) or ('wevibe' in title_tmp and '멜트' in title_tmp) or ('wevibe' in title_tmp and 'melt' in title_tmp) or ('we-vibe' in title_tmp and '멜트' in title_tmp) or ('we-vibe' in title_tmp and 'melt' in title_tmp):
+
+                                    pr2nm = '멜트'
+
+                                elif ('위바이브' in title_tmp and '자이브' in title_tmp) or ('위바이브' in title_tmp and 'jive' in title_tmp) or ('wevibe' in title_tmp and '자이브' in title_tmp) or ('wevibe' in title_tmp and 'jive' in title_tmp) or ('we-vibe' in title_tmp and '자이브' in title_tmp) or ('we-vibe' in title_tmp and 'jive' in title_tmp):
+
+                                    pr2nm = '자이브'
+
+                                elif ('위바이브' in title_tmp and '노바2' in title_tmp) or ('위바이브' in title_tmp and 'nova2' in title_tmp) or ('wevibe' in title_tmp and '노바2' in title_tmp) or ('wevibe' in title_tmp and 'nova2' in title_tmp) or ('we-vibe' in title_tmp and '노바2' in title_tmp) or ('we-vibe' in title_tmp and 'nova2' in title_tmp):
+
+                                    pr2nm = '노바2'
+
+                                elif ('위바이브' in title_tmp and '본드' in title_tmp) or ('위바이브' in title_tmp and 'bond' in title_tmp) or ('wevibe' in title_tmp and '본드' in title_tmp) or ('wevibe' in title_tmp and 'bond' in title_tmp) or ('we-vibe' in title_tmp and '본드' in title_tmp) or ('we-vibe' in title_tmp and 'bond' in title_tmp):
+
+                                    pr2nm = '본드'
+
+                                elif ('위바이브' in title_tmp and '피봇' in title_tmp) or ('위바이브' in title_tmp and 'pivot' in title_tmp) or ('wevibe' in title_tmp and '피봇' in title_tmp) or ('wevibe' in title_tmp and 'pivot' in title_tmp) or ('we-vibe' in title_tmp and '피봇' in title_tmp) or ('we-vibe' in title_tmp and 'pivot' in title_tmp):
+
+                                    pr2nm = '피봇'
+
+                                elif ('위바이브' in title_tmp and '터치엑스' in title_tmp) or ('위바이브' in title_tmp and '터치x' in title_tmp) or ('위바이브' in title_tmp and 'touch엑스' in title_tmp) or ('위바이브' in title_tmp and 'touchx' in title_tmp) or ('wevibe' in title_tmp and '터치엑스' in title_tmp) or ('wevibe' in title_tmp and '터치x' in title_tmp) or ('wevibe' in title_tmp and 'touch엑스' in title_tmp) or ('wevibe' in title_tmp and 'touchx' in title_tmp) or ('we-vibe' in title_tmp and '터치엑스' in title_tmp) or ('we-vibe' in title_tmp and '터치x' in title_tmp) or ('we-vibe' in title_tmp and 'touch엑스' in title_tmp) or ('we-vibe' in title_tmp and 'touchx' in title_tmp):
+
+                                    pr2nm = '터치엑스'
+
+                                elif ('위바이브' in title_tmp and '탱고엑스' in title_tmp) or ('위바이브' in title_tmp and '탱고x' in title_tmp) or ('위바이브' in title_tmp and 'tango엑스' in title_tmp) or ('위바이브' in title_tmp and 'tangox' in title_tmp) or ('wevibe' in title_tmp and '탱고엑스' in title_tmp) or ('wevibe' in title_tmp and '탱고x' in title_tmp) or ('wevibe' in title_tmp and 'tango엑스' in title_tmp) or ('wevibe' in title_tmp and 'tangox' in title_tmp) or ('we-vibe' in title_tmp and '탱고엑스' in title_tmp) or ('we-vibe' in title_tmp and '탱고x' in title_tmp) or ('we-vibe' in title_tmp and 'tango엑스' in title_tmp) or ('we-vibe' in title_tmp and 'tangox' in title_tmp):
+
+                                    pr2nm = '탱고엑스'
+
+                                elif ('위바이브' in title_tmp and '스페셜에디션' in title_tmp) or ('위바이브' in title_tmp and '스페셜edition' in title_tmp) or ('위바이브' in title_tmp and 'special에디션' in title_tmp) or ('위바이브' in title_tmp and 'specialedition' in title_tmp) or ('wevibe' in title_tmp and '스페셜에디션' in title_tmp) or ('wevibe' in title_tmp and '스페셜edition' in title_tmp) or ('wevibe' in title_tmp and 'special에디션' in title_tmp) or ('wevibe' in title_tmp and 'specialedition' in title_tmp) or ('we-vibe' in title_tmp and '스페셜에디션' in title_tmp) or ('we-vibe' in title_tmp and '스페셜edition' in title_tmp) or ('we-vibe' in title_tmp and 'special에디션' in title_tmp) or ('we-vibe' in title_tmp and 'specialedition' in title_tmp):
+
+                                    pr2nm = '스페셜에디션'
+
+                                elif ('위바이브' in title_tmp and '벡터' in title_tmp) or ('위바이브' in title_tmp and 'vector' in title_tmp) or ('wevibe' in title_tmp and '벡터' in title_tmp) or ('wevibe' in title_tmp and 'vector' in title_tmp) or ('we-vibe' in title_tmp and '벡터' in title_tmp) or ('we-vibe' in title_tmp and 'vector' in title_tmp):
+
+                                    pr2nm = '벡터'
+
+                                elif ('위바이브' in title_tmp and '버지' in title_tmp) or ('위바이브' in title_tmp and 'verge' in title_tmp) or ('wevibe' in title_tmp and '버지' in title_tmp) or ('wevibe' in title_tmp and 'verge' in title_tmp) or ('we-vibe' in title_tmp and '버지' in title_tmp) or ('we-vibe' in title_tmp and 'verge' in title_tmp):
+
+                                    pr2nm = '버지'
+
+                                elif ('위바이브' in title_tmp and '목시' in title_tmp) or ('위바이브' in title_tmp and 'moxie' in title_tmp) or ('wevibe' in title_tmp and '목시' in title_tmp) or ('wevibe' in title_tmp and 'moxie' in title_tmp) or ('we-vibe' in title_tmp and '목시' in title_tmp) or ('we-vibe' in title_tmp and 'moxie' in title_tmp):
+
+                                    pr2nm = '목시'
+
+                                else:
+
+                                    pr2nm = None
+                            
+                            elif keyword == GMARKET_KEYWORD_LIST[5]:
                             
                                 if ('오메가3' in title_tmp):
 
