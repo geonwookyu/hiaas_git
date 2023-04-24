@@ -49,7 +49,6 @@ GREENSHELF5_MAX_PRICE = ["50000", "100000", "200000", "300000"]
 
 COUPANG_GENERAL_KEYWORD = ["네이쳐스탑", "노트북"]
 
-
 # --------------------------------------Naver CONFIG-----------------------------------------
 NAVER_PAGE_COUNT = 6
 NAVER_CRAWL_DELAY = 2.0
@@ -64,3 +63,11 @@ INTERPARK_PAGE_COUNT = 30
 INTERPARK_CRAWL_DELAY = 2.0
 INTERPARK_SORTER = 'pop-rank'
 INTERPARK_LISTSIZE = '52'
+
+
+# --------------------------------------GMARKET CONFIG-----------------------------------------
+GMARKET_KEYWORD_LIST = ["우머나이저", "퓨어젤", "아크웨이브", "롬프", "위바이브","네이쳐스탑", "노트북"]
+GMARKET_PAGE_COUNT = 30
+GMARKET_CRAWL_DELAY = 2.0
+GMARKET_SORTER = 'pop-rank'
+GMARKET_LISTSIZE = '100'
