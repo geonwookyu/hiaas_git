@@ -124,6 +124,17 @@ class CoupangGeneralSpider(HiaasCommon):
 
                                 # 제품명2
                                 # item['pr2nm'] = pr2nm
+                                if (keyword == '네이쳐스탑') and ('오메가3' in pr1nm):
+                                    item['pr2nm'] = '오메가3'
+
+                                elif (keyword == '네이쳐스탑') and ('초록홍합' in pr1nm):
+                                    item['pr2nm'] = '초록홍합'
+                                
+                                elif (keyword == '네이쳐스탑') and ('쏘팔메토' in pr1nm):
+                                    item['pr2nm'] = '쏘팔메토'
+
+                                else:
+                                    item['pr2nm'] = None
 
                                 # 가격
                                 try:
