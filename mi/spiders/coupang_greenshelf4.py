@@ -8,8 +8,15 @@ from mi.items import HiLabMIItem
 from mi.spiders.hiaas_common import *
 from scrapy.utils.project import get_project_settings
 
-class CoupangGreenshelf4Test1Spider(HiaasCommon):
-    name = "coupang_greenshelf4_test1"
+def route_intercept(route):
+    if route.request.resource_type == "image":
+        # print(f"Blocking the image request to: {route.request.url}")
+        return route.fallback()
+
+    return route.continue_()
+
+class CoupangGreenshelf4Spider(HiaasCommon):
+    name = "coupang_greenshelf4"
     start_urls = ["data:,"]  # avoid using the default Scrapy downloader
 
     marketType = "coupang"
@@ -26,7 +33,6 @@ class CoupangGreenshelf4Test1Spider(HiaasCommon):
         COUPANG_MIN_PRICE = settings.get('GREENSHELF4_MIN_PRICE')   # 가격 필터
         COUPANG_MAX_PRICE = settings.get('GREENSHELF4_MAX_PRICE')   # 가격 필터
         COUPANG_LINKFILE_PATH = settings.get('COUPANG_LINKFILE_PATH')   # Coupang auto-Login cookie
-        PROXY_LIST = settings.get('PROXY_LIST')     # Proxy IP list
 
         with sync_playwright() as pw:
 
@@ -58,6 +64,8 @@ class CoupangGreenshelf4Test1Spider(HiaasCommon):
                             self.context.add_cookies(cookies)
 
                             search_link = f'https://www.coupang.com/np/search?rocketAll=false&q={keyword}&brand=&offerCondition=&filter=&availableDeliveryFilter=&filterType=&isPriceRange=false&priceRange={COUPANG_PRICE_RANGE[priceIndex]}&minPrice={COUPANG_MIN_PRICE[priceIndex]}&maxPrice={COUPANG_MAX_PRICE[priceIndex]}&page={pageNum}&trcid=&traid=&filterSetByUser=true&channel=recent&backgroundColor=&searchProductCount=&component=&rating=0&sorter={COUPANG_SORTER}&listSize={COUPANG_LISTSIZE}'
+
+                            page.route("**/*", route_intercept)
                             page.goto(search_link, timeout=0)
                             sleep(COUPANG_CRAWL_DELAY)
 
@@ -82,65 +90,74 @@ class CoupangGreenshelf4Test1Spider(HiaasCommon):
                                 if ('롬프' in productName and '비트' in productName) or ('롬프' in productName and 'beat' in productName) or ('romp' in productName and '비트' in productName) or ('romp' in productName and 'beat' in productName):
 
                                     href = productLocator.get_attribute('href')
-                                    detail_link = 'https://www.coupang.com' + href
                                     pr2nm = '비트'
-                                    products.append(detail_link + '!@#$%' + pr1nm + '!@#$%' + pr2nm)
+
+                                    product_info = {"href" : href, "pr1nm" : pr1nm, "pr2nm" : pr2nm}
+                                    products.append(product_info)
 
                                 elif ('롬프' in productName and '스위치' in productName) or ('롬프' in productName and 'switch' in productName) or ('romp' in productName and '스위치' in productName) or ('romp' in productName and 'switch' in productName):
 
                                     href = productLocator.get_attribute('href')
-                                    detail_link = 'https://www.coupang.com' + href
                                     pr2nm = '스위치'
-                                    products.append(detail_link + '!@#$%' + pr1nm + '!@#$%' + pr2nm)
+
+                                    product_info = {"href" : href, "pr1nm" : pr1nm, "pr2nm" : pr2nm}
+                                    products.append(product_info)
 
                                 elif ('롬프' in productName and '쥬크' in productName) or ('롬프' in productName and '주크' in productName) or ('롬프' in productName and 'juke' in productName) or ('romp' in productName and '쥬크' in productName) or ('romp' in productName and '주크' in productName) or ('romp' in productName and 'juke' in productName):
 
                                     href = productLocator.get_attribute('href')
-                                    detail_link = 'https://www.coupang.com' + href
                                     pr2nm = '쥬크'
-                                    products.append(detail_link + '!@#$%' + pr1nm + '!@#$%' + pr2nm)
+
+                                    product_info = {"href" : href, "pr1nm" : pr1nm, "pr2nm" : pr2nm}
+                                    products.append(product_info)
 
                                 elif ('롬프' in productName and '프리' in productName) or ('롬프' in productName and 'free' in productName) or ('romp' in productName and '프리' in productName) or ('romp' in productName and 'free' in productName):
 
                                     href = productLocator.get_attribute('href')
-                                    detail_link = 'https://www.coupang.com' + href
                                     pr2nm = '프리'
-                                    products.append(detail_link + '!@#$%' + pr1nm + '!@#$%' + pr2nm)
+
+                                    product_info = {"href" : href, "pr1nm" : pr1nm, "pr2nm" : pr2nm}
+                                    products.append(product_info)
 
                                 elif ('롬프' in productName and '웨이브' in productName) or ('롬프' in productName and 'wave' in productName) or ('romp' in productName and '웨이브' in productName) or ('romp' in productName and 'wave' in productName):
 
                                     href = productLocator.get_attribute('href')
-                                    detail_link = 'https://www.coupang.com' + href
                                     pr2nm = '웨이브'
-                                    products.append(detail_link + '!@#$%' + pr1nm + '!@#$%' + pr2nm)
+
+                                    product_info = {"href" : href, "pr1nm" : pr1nm, "pr2nm" : pr2nm}
+                                    products.append(product_info)
 
                                 elif ('롬프' in productName and '재즈' in productName) or ('롬프' in productName and 'jazz' in productName) or ('romp' in productName and '재즈' in productName) or ('romp' in productName and 'jazz' in productName):
 
                                     href = productLocator.get_attribute('href')
-                                    detail_link = 'https://www.coupang.com' + href
                                     pr2nm = '재즈'
-                                    products.append(detail_link + '!@#$%' + pr1nm + '!@#$%' + pr2nm)
+                                    
+                                    product_info = {"href" : href, "pr1nm" : pr1nm, "pr2nm" : pr2nm}
+                                    products.append(product_info)
 
                                 elif ('롬프' in productName and '샤인' in productName) or ('롬프' in productName and 'shine' in productName) or ('romp' in productName and '샤인' in productName) or ('romp' in productName and 'shine' in productName):
 
                                     href = productLocator.get_attribute('href')
-                                    detail_link = 'https://www.coupang.com' + href
                                     pr2nm = '샤인'
-                                    products.append(detail_link + '!@#$%' + pr1nm + '!@#$%' + pr2nm)
+
+                                    product_info = {"href" : href, "pr1nm" : pr1nm, "pr2nm" : pr2nm}
+                                    products.append(product_info)
 
                                 elif ('롬프' in productName and '하이프' in productName) or ('롬프' in productName and 'hype' in productName) or ('romp' in productName and '하이프' in productName) or ('romp' in productName and 'hype' in productName):
 
                                     href = productLocator.get_attribute('href')
-                                    detail_link = 'https://www.coupang.com' + href
                                     pr2nm = '하이프'
-                                    products.append(detail_link + '!@#$%' + pr1nm + '!@#$%' + pr2nm)
+                                    
+                                    product_info = {"href" : href, "pr1nm" : pr1nm, "pr2nm" : pr2nm}
+                                    products.append(product_info)
 
                                 elif ('롬프' in productName and '플립' in productName) or ('롬프' in productName and 'flip' in productName) or ('romp' in productName and '플립' in productName) or ('romp' in productName and 'flip' in productName):
 
                                     href = productLocator.get_attribute('href')
-                                    detail_link = 'https://www.coupang.com' + href
                                     pr2nm = '플립'
-                                    products.append(detail_link + '!@#$%' + pr1nm + '!@#$%' + pr2nm)
+
+                                    product_info = {"href" : href, "pr1nm" : pr1nm, "pr2nm" : pr2nm}
+                                    products.append(product_info)
 
                                 else:   continue
 
@@ -148,10 +165,11 @@ class CoupangGreenshelf4Test1Spider(HiaasCommon):
 
                                 try:
 
-                                    detail_link = product.split('!@#$%')[0]
-                                    pr1nm = product.split('!@#$%')[1]
-                                    pr2nm = product.split('!@#$%')[2]
+                                    detail_link = 'https://www.coupang.com' + product['href']
+                                    pr1nm = product['pr1nm']
+                                    pr2nm = product['pr2nm']
 
+                                    page.route("**/*", route_intercept)
                                     page.goto(detail_link, timeout=120000)
                                     sleep(COUPANG_CRAWL_DELAY)
 
@@ -233,10 +251,6 @@ class CoupangGreenshelf4Test1Spider(HiaasCommon):
                                     except PlaywrightTimeoutError as fullprError:
 
                                         item['fullpr'] = item['pr1pr']
-
-                                        # logging.error(f'fullpr: {fullprError}')
-                                        # logging.error(f'fullpr Error: {detail_link}')
-                                        logging.error('정가 selector 수정 필요')
 
                                     # 검색 키워드
                                     item['sk'] = keyword

@@ -8,6 +8,13 @@ from mi.items import HiLabMIItem
 from mi.spiders.hiaas_common import *
 from scrapy.utils.project import get_project_settings
 
+def route_intercept(route):
+    if route.request.resource_type == "image":
+        # print(f"Blocking the image request to: {route.request.url}")
+        return route.fallback()
+
+    return route.continue_()
+
 class CoupangGeneralSpider(HiaasCommon):
     name = "coupang_general"
     start_urls = ["data:,"]  # avoid using the default Scrapy downloader
@@ -29,7 +36,6 @@ class CoupangGeneralSpider(HiaasCommon):
             self.browser = pw.firefox.launch(proxy={
                 "server": "per-context"
             })
-            # self.browser = pw.firefox.launch()
 
             with open(COUPANG_LINKFILE_PATH, 'r', encoding='UTF-8') as json_file:
 
@@ -44,7 +50,6 @@ class CoupangGeneralSpider(HiaasCommon):
                         'username': 'jhnam@hiaas.co.kr',
                         'password': 'hiaas12!@'
                 })
-                # self.context = self.browser.new_context()
 
                 for pageNum in range(1, COUPANG_PAGE_COUNT):
 
@@ -54,6 +59,8 @@ class CoupangGeneralSpider(HiaasCommon):
                         self.context.add_cookies(cookies)
 
                         search_link = f'https://www.coupang.com/np/search?rocketAll=false&q={keyword}&brand=&offerCondition=&filter=&availableDeliveryFilter=&filterType=&isPriceRange=false&priceRange=&minPrice=&maxPrice=&page={pageNum}&trcid=&traid=&filterSetByUser=true&channel=recent&backgroundColor=&searchProductCount=1857217&component=&rating=0&sorter={COUPANG_SORTER}&listSize={COUPANG_LISTSIZE}'
+                        
+                        page.route("**/*", route_intercept)
                         page.goto(search_link, timeout=0)
                         sleep(COUPANG_CRAWL_DELAY)
                         
@@ -72,18 +79,20 @@ class CoupangGeneralSpider(HiaasCommon):
 
                             productLocator = productLocators.nth(productCnt)
 
-                            pr1nm = productLocator.locator('div.name').inner_text()
                             href = productLocator.get_attribute('href')
+                            pr1nm = productLocator.locator('div.name').inner_text()
 
-                            product = {"pr1nm" : pr1nm, "href" : href}
-                            products.append(product)
+                            product_info = {"href" : href, "pr1nm" : pr1nm}
+                            products.append(product_info)
 
                         for product in products:
 
                             try:
 
                                 detail_link = 'https://www.coupang.com' + product['href']
-                                
+                                pr1nm = product['pr1nm']
+
+                                page.route("**/*", route_intercept)
                                 page.goto(detail_link, timeout=120000)
                                 sleep(COUPANG_CRAWL_DELAY)
 
@@ -102,7 +111,7 @@ class CoupangGeneralSpider(HiaasCommon):
                                 item['rank'] = int(detail_link.split('&rank=')[1])
 
                                 # 광고 여부
-                                if 'sourceType=srp_product_ads' in product['href']:
+                                if 'sourceType=srp_product_ads' in detail_link:
                                     ad = 'ad'
 
                                 else:
@@ -111,7 +120,7 @@ class CoupangGeneralSpider(HiaasCommon):
                                 item['ad'] = ad
 
                                 # 제품명1
-                                item['pr1nm'] = product['pr1nm']
+                                item['pr1nm'] = pr1nm
 
                                 # 제품명2
                                 # item['pr2nm'] = pr2nm

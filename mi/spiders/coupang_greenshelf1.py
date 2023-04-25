@@ -8,8 +8,15 @@ from mi.items import HiLabMIItem
 from mi.spiders.hiaas_common import *
 from scrapy.utils.project import get_project_settings
 
-class CoupangGreenshelf3Test1Spider(HiaasCommon):
-    name = "coupang_greenshelf3_test1"
+def route_intercept(route):
+    if route.request.resource_type == "image":
+        # print(f"Blocking the image request to: {route.request.url}")
+        return route.fallback()
+
+    return route.continue_()
+
+class CoupangGreenshelf1Spider(HiaasCommon):
+    name = "coupang_greenshelf1"
     start_urls = ["data:,"]  # avoid using the default Scrapy downloader
 
     marketType = "coupang"
@@ -17,16 +24,15 @@ class CoupangGreenshelf3Test1Spider(HiaasCommon):
     def parse(self, response):
 
         settings = get_project_settings()
-        KEYWORD_LIST = settings.get('GREENSHELF3_KEYWORD')  # 검색 키워드 리스트
+        KEYWORD_LIST = settings.get('GREENSHELF1_KEYWORD')  # 검색 키워드 리스트
         COUPANG_CRAWL_DELAY = settings.get('COUPANG_CRAWL_DELAY')   # Delay 시간(seconds)
         COUPANG_LISTSIZE = settings.get('COUPANG_LISTSIZE')     # 한 페이지당 상품 개수
         COUPANG_PAGE_COUNT = settings.get('COUPANG_PAGE_COUNT')     # 페이지 수
         COUPANG_SORTER = settings.get('COUPANG_SORTER')     # 상품 정렬 기준
-        COUPANG_PRICE_RANGE = settings.get('GREENSHELF3_PRICE_RANGE')   # 가격 필터
-        COUPANG_MIN_PRICE = settings.get('GREENSHELF3_MIN_PRICE')   # 가격 필터
-        COUPANG_MAX_PRICE = settings.get('GREENSHELF3_MAX_PRICE')   # 가격 필터
+        COUPANG_PRICE_RANGE = settings.get('GREENSHELF1_PRICE_RANGE')   # 가격 필터
+        COUPANG_MIN_PRICE = settings.get('GREENSHELF1_MIN_PRICE')   # 가격 필터
+        COUPANG_MAX_PRICE = settings.get('GREENSHELF1_MAX_PRICE')   # 가격 필터
         COUPANG_LINKFILE_PATH = settings.get('COUPANG_LINKFILE_PATH')   # Coupang auto-Login cookie
-        PROXY_LIST = settings.get('PROXY_LIST')     # Proxy IP list
 
         with sync_playwright() as pw:
 
@@ -58,6 +64,8 @@ class CoupangGreenshelf3Test1Spider(HiaasCommon):
                             self.context.add_cookies(cookies)
 
                             search_link = f'https://www.coupang.com/np/search?rocketAll=false&q={keyword}&brand=&offerCondition=&filter=&availableDeliveryFilter=&filterType=&isPriceRange=false&priceRange={COUPANG_PRICE_RANGE[priceIndex]}&minPrice={COUPANG_MIN_PRICE[priceIndex]}&maxPrice={COUPANG_MAX_PRICE[priceIndex]}&page={pageNum}&trcid=&traid=&filterSetByUser=true&channel=recent&backgroundColor=&searchProductCount=&component=&rating=0&sorter={COUPANG_SORTER}&listSize={COUPANG_LISTSIZE}'
+
+                            page.route("**/*", route_intercept)
                             page.goto(search_link, timeout=0)
                             sleep(COUPANG_CRAWL_DELAY)
 
@@ -79,19 +87,62 @@ class CoupangGreenshelf3Test1Spider(HiaasCommon):
                                 pr1nm = productLocator.locator('div.name').inner_text()
                                 productName = pr1nm.lower().replace(' ', '')
 
-                                if ('아크웨이브' in productName and '이온' in productName) or ('아크웨이브' in productName and 'ion' in productName) or ('arcwave' in productName and '이온' in productName) or ('arcwave' in productName and 'ion' in productName):
+                                if ('프리미엄에코' in productName) or ('프리미엄eco' in productName) or ('premium에코' in productName) or ('premiumeco' in productName) or ('w500' in productName) or ('pro40' in productName):    continue
+
+                                if ('우머나이저' in productName and '리버티' in productName) or ('우머나이저' in productName and 'liberty' in productName) or ('womanizer' in productName and '리버티' in productName) or ('womanizer' in productName and 'liberty' in productName):
 
                                     href = productLocator.get_attribute('href')
-                                    detail_link = 'https://www.coupang.com' + href
-                                    pr2nm = '이온'
-                                    products.append(detail_link + '!@#$%' + pr1nm + '!@#$%' + pr2nm)
+                                    pr2nm = '리버티'
 
-                                elif ('아크웨이브' in productName and '보이' in productName) or ('아크웨이브' in productName and 'voy' in productName) or ('arcwave' in productName and '보이' in productName) or ('arcwave' in productName and 'voy' in productName):
+                                    product_info = {"href" : href, "pr1nm" : pr1nm, "pr2nm" : pr2nm}
+                                    products.append(product_info)
+
+                                elif ('우머나이저' in productName and '스탈렛' in productName) or ('우머나이저' in productName and 'starlet' in productName) or ('womanizer' in productName and '스탈렛' in productName) or ('womanizer' in productName and 'starlet' in productName):
 
                                     href = productLocator.get_attribute('href')
-                                    detail_link = 'https://www.coupang.com' + href
-                                    pr2nm = '보이'
-                                    products.append(detail_link + '!@#$%' + pr1nm + '!@#$%' + pr2nm)
+
+                                    if ('스탈렛3' in productName) or ('starlet3' in productName):
+                                    
+                                        pr2nm = '스탈렛3'
+
+                                    else: pr2nm = '스탈렛'
+
+                                    product_info = {"href" : href, "pr1nm" : pr1nm, "pr2nm" : pr2nm}
+                                    products.append(product_info)
+
+                                elif ('우머나이저' in productName and '듀오' in productName) or ('우머나이저' in productName and 'duo' in productName) or ('womanizer' in productName and '듀오' in productName) or ('womanizer' in productName and 'duo' in productName):
+
+                                    href = productLocator.get_attribute('href')
+                                    pr2nm = '듀오'
+
+                                    product_info = {"href" : href, "pr1nm" : pr1nm, "pr2nm" : pr2nm}
+                                    products.append(product_info)
+
+                                elif ('우머나이저' in productName and '클래식' in productName) or ('우머나이저' in productName and 'classic' in productName) or ('womanizer' in productName and '클래식' in productName) or ('womanizer' in productName and 'classic' in productName):
+
+                                    href = productLocator.get_attribute('href')
+                                    
+                                    if ('클래식2' in productName) or ('classic2' in productName) or ('뉴클래식' in productName) or ('뉴classic' in productName) or ('new클래식' in productName) or ('newclassic' in productName):
+                                    
+                                        pr2nm = '클래식2'
+
+                                    else: pr2nm = '클래식'
+
+                                    product_info = {"href" : href, "pr1nm" : pr1nm, "pr2nm" : pr2nm}
+                                    products.append(product_info)
+
+                                elif ('우머나이저' in productName and '프리미엄' in productName) or ('우머나이저' in productName and 'premium' in productName) or ('womanizer' in productName and '프리미엄' in productName) or ('womanizer' in productName and 'premium' in productName):
+
+                                    href = productLocator.get_attribute('href')
+
+                                    if ('뉴프리미엄' in productName) or ('new프리미엄' in productName) or ('newpremium' in productName) or ('프리미엄2' in productName) or ('premium2' in productName):
+
+                                        pr2nm = '프리미엄2'
+                                    
+                                    else: pr2nm = '프리미엄'
+
+                                    product_info = {"href" : href, "pr1nm" : pr1nm, "pr2nm" : pr2nm}
+                                    products.append(product_info)
 
                                 else:   continue
 
@@ -99,10 +150,11 @@ class CoupangGreenshelf3Test1Spider(HiaasCommon):
 
                                 try:
 
-                                    detail_link = product.split('!@#$%')[0]
-                                    pr1nm = product.split('!@#$%')[1]
-                                    pr2nm = product.split('!@#$%')[2]
+                                    detail_link = 'https://www.coupang.com' + product['href']
+                                    pr1nm = product['pr1nm']
+                                    pr2nm = product['pr2nm']
 
+                                    page.route("**/*", route_intercept)
                                     page.goto(detail_link, timeout=120000)
                                     sleep(COUPANG_CRAWL_DELAY)
 
@@ -184,10 +236,6 @@ class CoupangGreenshelf3Test1Spider(HiaasCommon):
                                     except PlaywrightTimeoutError as fullprError:
 
                                         item['fullpr'] = item['pr1pr']
-
-                                        # logging.error(f'fullpr: {fullprError}')
-                                        # logging.error(f'fullpr Error: {detail_link}')
-                                        logging.error('정가 selector 수정 필요')
 
                                     # 검색 키워드
                                     item['sk'] = keyword
