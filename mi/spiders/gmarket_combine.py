@@ -11,20 +11,18 @@ from scrapy.utils.project import get_project_settings
 import requests
 from bs4 import BeautifulSoup as bs
 
-
-class GmarketCombineSpider(HiaasCommon):
-    name = "gmarket_combine"
+# [수정항목 1] : class 명 작업 사이트에 맞게 변경.
+class GmarketCombineSpider(HiaasCommon): 
+    # [수정항목 2] : scrapy crawl gmarket_combine 명령어에 필요한 spider명 설정. 
+    name = "gmarket_combine" 
     start_urls = ["data:,"]  # avoid using the default Scrapy downloader
-    # custom_settings = {
-    #     'TWISTED_REACTOR' : "twisted.internet.eactor.electorReactor",
-    #     'RANDOM_UA_TYPE' : 'chrome'
-    #     # 'ITEM_PIPELINES' : None    
-    # }
-
-    marketType = "gmarket"
+ 
+    # [수정항목 3] : 작업 대상 쇼핑몰 이름 설정.
+    marketType = "gmarket" 
     
     def parse(self, response):
-
+        
+        # [수정항목 4] : settings > local.py, dev.py 에 "GMARKET CONFIG" 설정. ( 각 쇼핑몰에 필요한 정보 입력 )
         settings = get_project_settings()
         GMARKET_KEYWORD_LIST = settings.get('GMARKET_KEYWORD_LIST')
         GMARKET_CRAWL_DELAY = settings.get('GMARKET_CRAWL_DELAY')
@@ -40,19 +38,21 @@ class GmarketCombineSpider(HiaasCommon):
             
             for keyword in GMARKET_KEYWORD_LIST:
                 for pagenum in range(1, GMARKET_PAGE_COUNT + 1):
+                    # [수정항목 5] : 작업 쇼핑몰 사이트 상품리스트 URL 설정.
                     search_link = f'https://browse.gmarket.co.kr/search?keyword={keyword}&s=8&k=0&p={pagenum}'
                     page.goto(search_link)
                     
                     sleep(GMARKET_CRAWL_DELAY)
-                   
+                    
+                    # [수정항목 6] : 작업 쇼핑몰 사이트 상품리스트 메인 locator 설정.
                     locators = page.locator('//*[@id="section__inner-content-body-container"]//*[@class="box__component box__component-itemcard box__component-itemcard--general"]')
-                    # locators = page.locator('//*[text()="일반상품"]/parent::div//ul[@id="normalList"]/li')
 
                     count = locators.count()
                     logging.log(logging.INFO, "count = %d", count)
  
                     for i in range(count):
                         locator = locators.nth(i)
+                        # [수정항목 7] : 서치 키워드 외 타 브랜드(회사명) 제외하기 위한 조건문.
                         tmp = locator.locator('//*[@class="text__item"]').inner_text().lower().replace(' ', '')
                         print("상품명 (풀네임) : " + tmp)
                         if keyword == GMARKET_KEYWORD_LIST[0]:
@@ -82,37 +82,40 @@ class GmarketCombineSpider(HiaasCommon):
                             
                         else:   pass
                         
+                        # [수정항목 8] : 서치 키워드(브랜드)명인 상품에 대한 정보 가져오기 위한 작업.
                         if brandYn:
-                               
+                            # [수정항목 9] : 상품 랭킹 정보 crawling.   
                             tmp_rank = int(locator.locator('//*[@class = "link__shop"]').get_attribute('data-montelena-tier_asn'))
                             rank = tmp_rank
                             logging.log(logging.INFO, "rank = %d", rank)
-
-                            href = locator.locator('//*[@class="link__item"]').get_attribute('href')
-                            logging.log(logging.INFO, "href = %s", href)
                             
+                            # [수정항목 10] : 상품 상세페이지 URL정보 crawling. 
+                            href = locator.locator('//*[@class="link__item"]').get_attribute('href')
                             detail_link = href
+                            logging.log(logging.INFO, "href = %s", href)
                             
                             # 날짜
                             # now = datetime.datetime.now()
                             # today = now.strftime("%m월 %d일")
                             # print("날짜 : " + today)
-                            # 오픈마켓명
+                            
+                            # [수정항목 11] : 상품 오픈마켓명 URL정보 crawling. 
                             market_name = self.marketType
                             # print("오픈마켓명 : " + market_name)
-                            # 판매자정보(사업자 명)
                             
+                            # [수정항목 12] : 상품 판매자정보(사업자 명) 정보 crawling. 
                             seller = locator.locator('//*[@class = "link__shop"]').get_attribute('title').replace(" 미니샵으로 이동합니다","").strip()
                             # print("판매자정보(사업자 명) : " + seller) 
-                            # 상품번호 
+                            
+                            # [수정항목 13] : 상품번호 정보 crawling. 
                             item_no = locator.locator('//*[@class = "link__shop"]').get_attribute('data-montelena-goodscode')
                             logging.log(logging.INFO, "item_no = %s", item_no)
 
-                            # 상품명 (풀네임)
+                            # [수정항목 14] : 상품명 (풀네임) 정보 crawling. 
                             title = locator.locator('//*[@class="text__item"]').inner_text()
                             title_tmp = title.lower().replace(' ', '')
                             
-                            # 브랜드명
+                            # [수정항목 15] : 브랜드명 정보 crawling. : 각 회사의 상품브랜드를 세분화 하기 위한 조건문 
                             if keyword == GMARKET_KEYWORD_LIST[0]:
                                 if ('프리미엄에코' in title_tmp) or ('프리미엄eco' in title_tmp) or ('premium에코' in title_tmp) or ('premiumeco' in title_tmp) or ('w500' in title_tmp) or ('pro40' in title_tmp):    continue
 
@@ -281,9 +284,8 @@ class GmarketCombineSpider(HiaasCommon):
 
                             brand = title.split()[0]
 
-                            # URL
 
-                            # 판매가(쿠폰 포함)
+                            # [수정항목 16] : 상품 판매가(쿠폰 포함) 정보 crawling. 
                             price = int((locator.locator('//*[@class="box__price-seller"]//*[@class="text text__value"]').inner_text()).replace(",","").strip())
                             # print("판매가(쿠폰 포함) : " + price)
 
@@ -291,7 +293,7 @@ class GmarketCombineSpider(HiaasCommon):
                             # img = locator.locator('//*[@class="imgBox"]//img').get_attribute('src')
                             # print("이미지 : " + img)
 
-                            # 가격할인정보
+                            # [수정항목 17] : 상품 할인된 가격 정보 crawling. 
                             if locator.locator('//*[@class="box__price-seller"]//*[@class="for-a11y"]').inner_text() == "상품금액":
                                 discount = price
                                 # print("할인 없는 원가정보 : " + discount)
@@ -299,12 +301,8 @@ class GmarketCombineSpider(HiaasCommon):
                                 discount = int((locator.locator('//*[@class="box__price-original"]//*[@class="text text__value"]').inner_text()).replace(",","").strip())
                                 # print("할인 있는 원가정보 : " + discount)
 
-                            # # logging.log(logging.INFO, href)
-                            # # if 'sourceType=srp_product_ads' in href:
-                            # #     ad = 'ad'
-                            # # else:
-                            # #     ad = None
 
+                            # 설정된 아이템 필드에 가져온 정보 넣기
                             item = HiLabMIItem()
                             item['mid'] = market_name   # 마켓타입
 
@@ -332,45 +330,6 @@ class GmarketCombineSpider(HiaasCommon):
 
                             yield item
 
-
-                            
-                            # yield scrapy.Request(url=detail_link, 
-                            #                      callback=self.parse_detail, 
-                            #                      meta=dict(
-                            #                         sk = keyword,
-                            #                         rank = rank
-                            #                      )
-                            # )
-
                         else:   pass
 
             self.browser.close()
-
-    def parse_detail(self, response):
-        pass
-           
-         
-    
-
-        # try:
-        #     item = HiLabMIItem()
-            
-        #     item['mid'] = self.marketType   # 마켓 타입 (ex. naver, coupang, interpark)
-
-        #     item['ctype'] = 1   # collection type(1:키워드, 2:카테고리)
-            
-        #     item['detail_link'] = response.url  # 상세페이지 링크
-            
-        #     item['rank'] = response.meta.get('rank')     # 순위
-            # logging.log(logging.INFO, "rank = %d", response.meta.get('rank'))
-                           
-            # response.xpath('//*[@id="productWrapper"]/div[1]/div/ul/li[1]/a/text()').get() //////카테고리 1
-
-            # response.xpath('//*[@id="productWrapper"]/div[1]/div/ul/li[2]/a/text()').get() //카테고리 2
-
-            # response.xpath('//*[@id="productWrapper"]/div[1]/div/ul/li[3]/a/text()').get() //카테고리 3
-
-            # yield item
-
-        # except Exception as e:
-        #     logging.log(logging.ERROR, e)
