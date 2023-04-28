@@ -4,7 +4,7 @@ from .base import *
 HTTP_POST_PIPELINE_URL = 'http://localhost'
 
 # log config
-LOG_LEVEL = 'ERROR'
+LOG_LEVEL = 'DEBUG'
 # LOG_FORMAT = '%(levelname)s :: %(asctime)s :: %(module)s ::%(name)s\n%(message)s'
 # LOG_FILE = 'log.txt'
 
@@ -71,3 +71,11 @@ GMARKET_PAGE_COUNT = 30      # 상품 페이지 개수 설정
 GMARKET_CRAWL_DELAY = 2.0  
 GMARKET_SORTER = 'pop-rank'
 GMARKET_LISTSIZE = '100'     # 해당 쇼핑몰 한 페이지에 표출되는 리스트 정보
+
+
+# --------------------------------------Timon CONFIG-----------------------------------------
+TIMON_KEYWORD_LIST = ["우머나이저", "퓨어젤", "아크웨이브", "롬프", "위바이브", "네이쳐스탑", "노트북"]
+TIMON_PAGE_COUNT = 30      # 상품 페이지 개수 설정 
+TIMON_CRAWL_DELAY = 2.0  
+TIMON_SORTER = 'pop-rank'
+TIMON_LISTSIZE = '3'     # 해당 쇼핑몰 한 페이지에 표출되는 리스트 정보
