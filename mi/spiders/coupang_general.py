@@ -194,12 +194,18 @@ class CoupangGeneralSpider(HiaasCommon):
                                 # 브랜드
                                 item['pr1br'] = pr1nm.split()[0]    # 제품명의 앞 한 단어(임시)
 
-                                # SKU1
-                                SKU = json.loads(page.locator('div.prod-ctl-or-fbt-recommend.impression-log').get_attribute('data-fodium-widget-params'))
-                                item['pr1id'] = SKU['productId']
+                                # SKU1, SKU2
+                                try:
+                                
+                                    SKU = json.loads(page.locator('div.prod-ctl-or-fbt-recommend.impression-log').get_attribute('data-fodium-widget-params'))
+                                    item['pr1id'] = SKU['productId']
 
-                                # SKU2
-                                item['pr2id'] = SKU['itemId']
+                                    item['pr2id'] = SKU['itemId']
+
+                                except PlaywrightTimeoutError as skuError:
+
+                                    item['pr1id'] = None
+                                    item['pr2id'] = None
 
                                 yield item
 
