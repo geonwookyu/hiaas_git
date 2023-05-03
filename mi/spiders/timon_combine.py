@@ -11,6 +11,14 @@ from scrapy.utils.project import get_project_settings
 import requests
 from bs4 import BeautifulSoup as bs
 
+# image block
+def route_intercept(route):
+    if route.request.resource_type == "image":
+        # print(f"Blocking the image request to: {route.request.url}")
+        return route.fallback()
+
+    return route.continue_()
+
 # [수정항목 1] : class 명 작업 사이트에 맞게 변경.
 class TimonCombineSpider(HiaasCommon): 
     # [수정항목 2] : scrapy crawl gmarket_combine 명령어에 필요한 spider명 설정. 
@@ -33,13 +41,24 @@ class TimonCombineSpider(HiaasCommon):
         logging.log(logging.INFO, TIMON_KEYWORD_LIST)
 
         with sync_playwright() as pw:
-            self.browser = pw.firefox.launch()
-            page = self.browser.new_page()            
+            self.browser = pw.firefox.launch(proxy={
+                "server": "per-context"
+            })
             
             for keyword in TIMON_KEYWORD_LIST:
+
+                self.context = self.browser.new_context(proxy={
+                    'server': 'http://proxy.edgenet.site:7777',
+                    'username': 'jhnam@hiaas.co.kr',
+                    'password': 'hiaas12!@'
+                })
+
                 for pagenum in range(1, TIMON_PAGE_COUNT + 1):
+                    page = self.context.new_page()            
+                    
                     # [수정항목 5] : 작업 쇼핑몰 사이트 상품리스트 URL 설정.
                     search_link = f'https://search.tmon.co.kr/search/?keyword={keyword}&thr=hs&page={pagenum}'
+                    page.route("**/*", route_intercept)
                     page.goto(search_link)
                     
                     sleep(TIMON_CRAWL_DELAY)
@@ -331,5 +350,9 @@ class TimonCombineSpider(HiaasCommon):
                             yield item
 
                         else:   pass
+
+                    page.close()
+                
+                self.context.close()
 
             self.browser.close()
