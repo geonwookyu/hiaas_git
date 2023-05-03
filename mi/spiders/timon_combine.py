@@ -59,7 +59,7 @@ class TimonCombineSpider(HiaasCommon):
                     # [수정항목 5] : 작업 쇼핑몰 사이트 상품리스트 URL 설정.
                     search_link = f'https://search.tmon.co.kr/search/?keyword={keyword}&thr=hs&page={pagenum}'
                     page.route("**/*", route_intercept)
-                    page.goto(search_link)
+                    page.goto(search_link, timeout=0)
                     
                     sleep(TIMON_CRAWL_DELAY)
                     
