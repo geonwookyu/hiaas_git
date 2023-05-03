@@ -327,11 +327,11 @@ class TimonCombineSpider(HiaasCommon):
 
                             item['ctype'] = 1   # collection 타입
 
-                            item['rank'] = "No Rank"  # 제품순위
+                            item['rank'] = None  # 제품순위
 
                             item['detail_link'] = detail_link   # 제품 상세페이지 링크
 
-                            item['pr1id'] = "No item_no"
+                            item['pr1id'] = None
 
                             item['pr1nm'] = title
 
@@ -341,7 +341,7 @@ class TimonCombineSpider(HiaasCommon):
 
                             item['fullpr'] = discount
 
-                            item['ta'] = "No seller"
+                            item['ta'] = None
 
                             item['pr1br'] = brand
 
