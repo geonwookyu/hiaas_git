@@ -175,12 +175,13 @@ class NaverCombineSpider(HiaasCommon):
                             item['revco'] = reviewCount
                             # logging.log(logging.INFO, "reviewCount = %d", reviewCount)
                             
-                            hasDeliveryFeeContent = product['item']['hasDeliveryFeeContent']    # 무료배송유무
-                            if hasDeliveryFeeContent is None:
-                                hasDeliveryFeeContent = False
-                            else:
-                                hasDeliveryFeeContent = True  
-                            item['ts'] = hasDeliveryFeeContent
+                            # hasDeliveryFeeContent = product['item']['hasDeliveryFeeContent']    # 무료배송유무
+                            # if hasDeliveryFeeContent is None:
+                            #     hasDeliveryFeeContent = False
+                            # else:
+                            #     hasDeliveryFeeContent = True  
+                            # item['ts'] = hasDeliveryFeeContent
+                            item['ts'] = None
                             # logging.log(logging.INFO, "hasDeliveryFeeContent = %d", hasDeliveryFeeContent)
                                                 
                             brand = reviewCount = product['item']['brand']  # 브랜드
