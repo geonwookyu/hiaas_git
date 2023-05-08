@@ -139,11 +139,11 @@ class CoupangGeneralSpider(HiaasCommon):
                                 # 가격
                                 try:
 
-                                    noWowpr = page.locator('span.total-price > strong').first.inner_text()
+                                    noWowpr = page.locator('span.total-price > strong').first.inner_text(timeout=1000)
 
                                     if noWowpr == "원":
 
-                                        wowpr = page.locator('tr.choose-item.one-time-li.price-type-item.selected > td.td-price > span.price').inner_text()
+                                        wowpr = page.locator('tr.choose-item.one-time-li.price-type-item.selected > td.td-price > span.price').inner_text(timeout=1000)
                                         item['pr1pr'] = int(re.sub(r'[^0-9]', '', str(wowpr)))
 
                                     else:
