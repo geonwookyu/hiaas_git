@@ -16,6 +16,7 @@ LIMIT_PAGING_COUNT = 14
 
 # --------------------------------------COUPANG CONFIG-----------------------------------------
 COUPANG_PAGE_COUNT = 14
+COUPANG_GENERAL_PAGE_COUNT = 6
 COUPANG_CRAWL_DELAY = 2.0
 COUPANG_SORTER = 'scoreDesc'
 COUPANG_LISTSIZE = '72'
