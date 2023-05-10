@@ -8,9 +8,24 @@ from mi.items import HiLabMIItem
 from mi.spiders.hiaas_common import *
 from scrapy.utils.project import get_project_settings
 
+# block pages by resource type. e.g. image, stylesheet
+BLOCK_RESOURCE_TYPES = [
+#   'beacon',
+#   'csp_report',
+  'font',
+  'image',
+  'imageset',
+  'media',
+  'object',
+#   'texttrack',
+#  we can even block stylsheets and scripts though it's not recommended:
+  'stylesheet'
+# 'script',  
+# 'xhr',
+]
+
 def route_intercept(route):
-    if route.request.resource_type == "image":
-        # print(f"Blocking the image request to: {route.request.url}")
+    if route.request.resource_type in BLOCK_RESOURCE_TYPES:
         return route.fallback()
 
     return route.continue_()
@@ -27,7 +42,7 @@ class CoupangGeneralSpider(HiaasCommon):
         KEYWORD_LIST = settings.get('COUPANG_GENERAL_KEYWORD')
         COUPANG_CRAWL_DELAY = settings.get('COUPANG_CRAWL_DELAY')
         COUPANG_LISTSIZE = settings.get('COUPANG_LISTSIZE')
-        COUPANG_PAGE_COUNT = settings.get('COUPANG_PAGE_COUNT')
+        COUPANG_GENERAL_PAGE_COUNT = settings.get('COUPANG_GENERAL_PAGE_COUNT')
         COUPANG_SORTER = settings.get('COUPANG_SORTER')
         COUPANG_LINKFILE_PATH = settings.get('COUPANG_LINKFILE_PATH')   # Coupang auto-Login cookie
 
@@ -51,7 +66,7 @@ class CoupangGeneralSpider(HiaasCommon):
                         'password': 'hiaas12!@'
                 })
 
-                for pageNum in range(1, COUPANG_PAGE_COUNT):
+                for pageNum in range(1, COUPANG_GENERAL_PAGE_COUNT):
 
                     try:
 
@@ -132,6 +147,9 @@ class CoupangGeneralSpider(HiaasCommon):
                                 
                                 elif (keyword == '네이쳐스탑') and ('쏘팔메토' in pr1nm):
                                     item['pr2nm'] = '쏘팔메토'
+
+                                elif (keyword == '노트북'):
+                                    item['pr2nm'] = '노트북'
 
                                 else:
                                     item['pr2nm'] = None
